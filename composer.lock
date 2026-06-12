@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4980d2a27f777ba1be7f54ccca8325a5",
+    "content-hash": "7bd38f0815b4d35ea75d3a057e7ddc58",
     "packages": [
         {
             "name": "codeigniter4/framework",
@@ -148,16 +148,16 @@
         },
         {
             "name": "jengo/base",
-            "version": "v1.0.5",
+            "version": "v1.0.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/lipex-org/jengo-base.git",
-                "reference": "48922476f55e500ffa43b9ae8234101a27236376"
+                "reference": "d11c2cb7e9abfe9a77ebc9101dc57eb7a0316655"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/lipex-org/jengo-base/zipball/48922476f55e500ffa43b9ae8234101a27236376",
-                "reference": "48922476f55e500ffa43b9ae8234101a27236376",
+                "url": "https://api.github.com/repos/lipex-org/jengo-base/zipball/d11c2cb7e9abfe9a77ebc9101dc57eb7a0316655",
+                "reference": "d11c2cb7e9abfe9a77ebc9101dc57eb7a0316655",
                 "shasum": ""
             },
             "require": {
@@ -191,9 +191,9 @@
             "description": "New Jengo based on the current knowledge I have of ci4",
             "support": {
                 "issues": "https://github.com/lipex-org/jengo-base/issues",
-                "source": "https://github.com/lipex-org/jengo-base/tree/v1.0.5"
+                "source": "https://github.com/lipex-org/jengo-base/tree/v1.0.6"
             },
-            "time": "2026-06-12T02:00:33+00:00"
+            "time": "2026-06-12T02:59:40+00:00"
         },
         {
             "name": "laminas/laminas-escaper",
