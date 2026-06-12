@@ -27,6 +27,13 @@ use Jengo\Inertia\Config\Services;
  * @method static Response                           render(string $component, array $props = [], array $viewData = [])
  * @method static void                               share(string|array $key, $value = null)
  * @method static void                               version((Closure | string | null) $version)
+ * @method static Props\Lazy                         lazy(Closure $callback)
+ * @method static Props\Defer                        defer(Closure $callback, string $group = 'default')
+ * @method static Props\Once                         once(Closure $callback)
+ * @method static Props\Mergeable                    merge(mixed $value)
+ * @method static Props\Mergeable                    prepend(mixed $value)
+ * @method static Props\Mergeable                    deepMerge(mixed $value)
+ * @method static Props\Always                       always(mixed $value)
  *
  * @see ResponseFactory
  */

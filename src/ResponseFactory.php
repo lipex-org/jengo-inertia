@@ -30,6 +30,11 @@ class ResponseFactory
     protected $sharedProps = [];
 
     /**
+     * @var array<string>
+     */
+    protected $sharedKeys = [];
+
+    /**
      * @var Closure|string|null
      */
     protected $version;
@@ -44,9 +49,11 @@ class ResponseFactory
     {
         if (is_array($key)) {
             $this->sharedProps = array_merge($this->sharedProps, $key);
+            $this->sharedKeys = array_unique(array_merge($this->sharedKeys, array_keys($key)));
         }
         else {
             Arr::set($this->sharedProps, $key, $value);
+            $this->sharedKeys[] = $key;
         }
     }
 
@@ -67,11 +74,20 @@ class ResponseFactory
     }
 
     /**
+     * @return array<string>
+     */
+    public function getSharedKeys(): array
+    {
+        return $this->sharedKeys;
+    }
+
+    /**
      * @psalm-api
      */
     public function flushShared(): void
     {
         $this->sharedProps = [];
+        $this->sharedKeys = [];
     }
 
     /**
@@ -97,18 +113,45 @@ class ResponseFactory
      *
      * @param array<string, mixed> $props
      */
-    public function render(string $component, array $props = []): string
+    public function render(string $component, array $props = []): Response
     {
-        /** @var Config\Inertia */
-        $config = \config('Inertia');
+        return (new Response($component, array_merge($this->sharedProps, $props), $this->getVersion()))
+            ->withSharedKeys($this->sharedKeys);
+    }
 
-        $response = (new Response($component, array_merge($this->sharedProps, $props), $this->getVersion()))->toResponse();
+    public function lazy(Closure $callback): Props\Lazy
+    {
+        return new Props\Lazy($callback);
+    }
 
-        if ($response instanceof View) {
-            return $response->render($config->rootView);
-        }
+    public function defer(Closure $callback, string $group = 'default'): Props\Defer
+    {
+        return new Props\Defer($group, $callback);
+    }
 
-        return $response->getJSON();
+    public function once(Closure $callback): Props\Once
+    {
+        return new Props\Once($callback);
+    }
+
+    public function merge(mixed $value): Props\Mergeable
+    {
+        return new Props\Mergeable($value);
+    }
+
+    public function prepend(mixed $value): Props\Mergeable
+    {
+        return new Props\Mergeable($value, prepend: true);
+    }
+
+    public function deepMerge(mixed $value): Props\Mergeable
+    {
+        return new Props\Mergeable($value, deep: true);
+    }
+
+    public function always(mixed $value): Props\Always
+    {
+        return new Props\Always($value);
     }
 
     /**
@@ -117,13 +160,19 @@ class ResponseFactory
     public function location(RequestInterface|string $url): ResponseInterface
     {
         if ($url instanceof RequestInterface) {
-            $url = $url->getUri();
+            $url = (string)$url->getUri();
         }
 
         if (Http::isInertiaRequest()) {
             session()->set('_ci_previous_url', $url);
 
-            return \response()->setStatusCode(\response()::HTTP_CONFLICT)->setHeader('X-Inertia-Location', $url);
+            $response = \response()->setStatusCode(\response()::HTTP_CONFLICT);
+
+            if (str_contains($url, '#')) {
+                return $response->setHeader('X-Inertia-Redirect', $url);
+            }
+
+            return $response->setHeader('X-Inertia-Location', $url);
         }
 
         return \redirect()->to($url, \response()::HTTP_SEE_OTHER);

@@ -32,6 +32,11 @@ class Response
 
     protected string $version = '';
     protected string $component = '';
+    protected bool $encryptHistory = false;
+    protected bool $clearHistory = false;
+    protected bool $preserveFragment = false;
+    protected array $sharedKeys = [];
+    protected array $scrollProps = [];
 
     /**
      * @param array<string, mixed> $props
@@ -73,32 +78,157 @@ class Response
         return $this;
     }
 
+    public function withSharedKeys(array $keys): static
+    {
+        $this->sharedKeys = $keys;
+        return $this;
+    }
+
+    public function scrollProps(array $props): static
+    {
+        $this->scrollProps = $props;
+        return $this;
+    }
+
+    public function encryptHistory(bool $encrypt = true): static
+    {
+        $this->encryptHistory = $encrypt;
+        return $this;
+    }
+
+    public function clearHistory(bool $clear = true): static
+    {
+        $this->clearHistory = $clear;
+        return $this;
+    }
+
+    public function preserveFragment(bool $preserve = true): static
+    {
+        $this->preserveFragment = $preserve;
+        return $this;
+    }
+
+    public function __toString(): string
+    {
+        $response = $this->toResponse();
+
+        if ($response instanceof View) {
+            /** @var Config\Inertia */
+            $config = \config('Inertia');
+            return $response->render($config->rootView);
+        }
+
+        return (string)$response->getJSON();
+    }
+
     public function toResponse(?RequestInterface $request = null): View|ResponseInterface
     {
         $request ??= request();
 
-        $only = array_filter(explode(',', Http::getHeaderValue('X-Inertia-Partial-Data', '', $request)));
+        $partialData = Http::getPartialData($request);
+        $partialExcept = Http::getPartialExcept($request);
+        $isPartial = Http::isPartialReload($request) && Http::getHeaderValue('X-Inertia-Partial-Component', '', $request) === $this->component;
+        
+        $exceptOnce = Http::getExceptOnceProps($request);
 
-        $props = ($only && Http::getHeaderValue('X-Inertia-Partial-Component', '', $request) === $this->component)
-            ?Arr::only($this->props, $only)
-            : $this->props;
+        $resolvedProps = [];
+        $deferredProps = [];
+        $rescuedProps = [];
+        $mergeProps = [];
+        $prependProps = [];
+        $deepMergeProps = [];
+        $matchPropsOn = [];
+        $onceProps = [];
 
-        array_walk_recursive($props, static function (&$prop) {
-            $prop = Arr::value($prop);
-        });
+        foreach ($this->props as $key => $value) {
+            // Handle "Always" props
+            if ($value instanceof Props\Always) {
+                $resolvedProps[$key] = Arr::value($value->value);
+                continue;
+            }
+
+            // Partial reload logic
+            if ($isPartial) {
+                if ($partialData && !in_array($key, $partialData, true)) {
+                    continue;
+                }
+                if ($partialExcept && in_array($key, $partialExcept, true)) {
+                    continue;
+                }
+            } elseif ($value instanceof Props\Lazy) {
+                // Lazy props are only included in partial reloads
+                continue;
+            }
+
+            // Handle "Once" props
+            if ($value instanceof Props\Once) {
+                $onceProps[$key] = ['prop' => $key, 'expiresAt' => null];
+                if (in_array($key, $exceptOnce, true)) {
+                    continue;
+                }
+                $resolvedProps[$key] = Arr::value($value->callback);
+                continue;
+            }
+
+            // Handle "Defer" props
+            if ($value instanceof Props\Defer) {
+                if (!$isPartial || !in_array($key, $partialData, true)) {
+                    $deferredProps[$value->group][] = $key;
+                    continue;
+                }
+                try {
+                    $resolvedProps[$key] = Arr::value($value->callback);
+                } catch (\Throwable $e) {
+                    $rescuedProps[] = $key;
+                }
+                continue;
+            }
+
+            // Handle "Mergeable" props
+            if ($value instanceof Props\Mergeable) {
+                if ($value->deep) {
+                    $deepMergeProps[] = $key;
+                } elseif ($value->prepend) {
+                    $prependProps[] = $key;
+                } else {
+                    $mergeProps[] = $key;
+                }
+                
+                if ($value->matchOn) {
+                    $matchPropsOn[] = "{$key}.{$value->matchOn}";
+                }
+                
+                $resolvedProps[$key] = Arr::value($value->value);
+                continue;
+            }
+
+            // Regular props
+            $resolvedProps[$key] = Arr::value($value);
+        }
 
         $fragment = $request->getUri()->getFragment();
         $query = $request->getUri()->getQuery();
-
         $url = $request->getUri()->getPath() . ($fragment ? "#{$fragment}" : "") . ($query ? "?{$query}" : "");
 
-        /** @var array{component: string, version: string, url: string, props: array<string, mixed>} */
         $page = [
             'component' => $this->component,
-            'props' => $props,
+            'props' => $resolvedProps,
             'url' => $url,
             'version' => $this->version,
         ];
+
+        if ($this->encryptHistory) $page['encryptHistory'] = true;
+        if ($this->clearHistory) $page['clearHistory'] = true;
+        if ($this->preserveFragment) $page['preserveFragment'] = true;
+        if ($deferredProps) $page['deferredProps'] = $deferredProps;
+        if ($rescuedProps) $page['rescuedProps'] = $rescuedProps;
+        if ($mergeProps) $page['mergeProps'] = $mergeProps;
+        if ($prependProps) $page['prependProps'] = $prependProps;
+        if ($deepMergeProps) $page['deepMergeProps'] = $deepMergeProps;
+        if ($matchPropsOn) $page['matchPropsOn'] = $matchPropsOn;
+        if ($onceProps) $page['onceProps'] = $onceProps;
+        if ($this->sharedKeys) $page['sharedProps'] = $this->sharedKeys;
+        if ($this->scrollProps) $page['scrollProps'] = $this->scrollProps;
 
         if (Http::isInertiaRequest($request)) {
             return \response()->setJSON($page, true)->setHeader('Vary', 'X-Inertia')->setHeader('X-Inertia', 'true');

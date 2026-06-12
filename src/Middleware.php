@@ -67,6 +67,16 @@ class Middleware implements FilterInterface
     {
         $response->setHeader('Vary', 'X-Inertia');
 
+        if ($request->hasHeader('Precognition')) {
+            $response->setHeader('Vary', 'Precognition');
+            $response->setHeader('Precognition', 'true');
+
+            // If it's a 200/201 but was a precognition request, 
+            // and we didn't have errors, we might want to return 204.
+            // But validation errors usually result in a redirect back with errors in CI4.
+            // So we need to catch that.
+        }
+
         if (!$request->hasHeader('X-Inertia')) {
             return $response;
         }
@@ -84,8 +94,8 @@ class Middleware implements FilterInterface
         }
 
         if (
-        $response->getStatusCode() === $response::HTTP_FOUND
-        && (request()->is('put') || request()->is('patch') || request()->is('delete'))
+            $response->getStatusCode() === $response::HTTP_FOUND
+            && (request()->is('put') || request()->is('patch') || request()->is('delete'))
         ) {
             $response->setStatusCode($response::HTTP_SEE_OTHER);
         }

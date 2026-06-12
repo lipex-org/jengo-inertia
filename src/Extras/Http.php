@@ -23,18 +23,46 @@ class Http
         return $request->hasHeader('X-Inertia');
     }
 
-    /**
-     * @return list<list<string>|string>|string
-     * @psalm-return array<int|string, array<string, string>|string>|string
-     */
-    public static function getHeaderValue(string $header, string $default = '', ?RequestInterface $request = null): array |string
+    public static function isPartialReload(?RequestInterface $request = null): bool
     {
         $request ??= request();
 
-        if ($request->hasHeader($header)) {
-            return $request->header($header)->getValue();
-        }
+        return self::isInertiaRequest($request) && $request->hasHeader('X-Inertia-Partial-Component');
+    }
 
-        return $default;
+    /**
+     * @return list<string>
+     */
+    public static function getPartialData(?RequestInterface $request = null): array
+    {
+        $value = self::getHeaderValue('X-Inertia-Partial-Data', '', $request);
+        return array_filter(explode(',', is_array($value) ? implode(',', $value) : $value));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function getPartialExcept(?RequestInterface $request = null): array
+    {
+        $value = self::getHeaderValue('X-Inertia-Partial-Except', '', $request);
+        return array_filter(explode(',', is_array($value) ? implode(',', $value) : $value));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function getResetProps(?RequestInterface $request = null): array
+    {
+        $value = self::getHeaderValue('X-Inertia-Reset', '', $request);
+        return array_filter(explode(',', is_array($value) ? implode(',', $value) : $value));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function getExceptOnceProps(?RequestInterface $request = null): array
+    {
+        $value = self::getHeaderValue('X-Inertia-Except-Once-Props', '', $request);
+        return array_filter(explode(',', is_array($value) ? implode(',', $value) : $value));
     }
 }
