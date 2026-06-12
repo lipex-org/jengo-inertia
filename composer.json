@@ -9,19 +9,10 @@
       "email": "ochiengian383@gmail.com"
     }
   ],
-  "repositories": {
-    "jengo/base": {
-      "type": "path",
-      "url": "../base",
-      "options": {
-        "symlink": true
-      }
-    }
-  },
   "require": {
     "php": "^8.5",
     "codeigniter4/framework": "^4.7",
-    "jengo/base": "dev-main"
+    "jengo/base": "^1.0.5"
   },
   "require-dev": {
     "codeigniter/coding-standard": "^1.7",
