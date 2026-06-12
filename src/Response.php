@@ -12,13 +12,14 @@
 namespace Jengo\Inertia;
 
 use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponsableInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\View\View;
 use Config\View as ConfigView;
 use Jengo\Inertia\Extras\Arr;
 use Jengo\Inertia\Extras\Http;
 
-class Response
+class Response implements ResponsableInterface
 {
     /**
      * @var array<string, mixed>
@@ -56,8 +57,7 @@ class Response
     {
         if (is_array($key)) {
             $this->props = array_merge($this->props, $key);
-        }
-        else {
+        } else {
             $this->props[$key] = $value;
         }
 
@@ -118,7 +118,7 @@ class Response
             return $response->render($config->rootView);
         }
 
-        return (string)$response->getJSON();
+        return (string) $response->getJSON();
     }
 
     public function toResponse(?RequestInterface $request = null): View|ResponseInterface
@@ -128,7 +128,7 @@ class Response
         $partialData = Http::getPartialData($request);
         $partialExcept = Http::getPartialExcept($request);
         $isPartial = Http::isPartialReload($request) && Http::getHeaderValue('X-Inertia-Partial-Component', '', $request) === $this->component;
-        
+
         $exceptOnce = Http::getExceptOnceProps($request);
 
         $resolvedProps = [];
@@ -193,11 +193,11 @@ class Response
                 } else {
                     $mergeProps[] = $key;
                 }
-                
+
                 if ($value->matchOn) {
                     $matchPropsOn[] = "{$key}.{$value->matchOn}";
                 }
-                
+
                 $resolvedProps[$key] = Arr::value($value->value);
                 continue;
             }
@@ -217,18 +217,30 @@ class Response
             'version' => $this->version,
         ];
 
-        if ($this->encryptHistory) $page['encryptHistory'] = true;
-        if ($this->clearHistory) $page['clearHistory'] = true;
-        if ($this->preserveFragment) $page['preserveFragment'] = true;
-        if ($deferredProps) $page['deferredProps'] = $deferredProps;
-        if ($rescuedProps) $page['rescuedProps'] = $rescuedProps;
-        if ($mergeProps) $page['mergeProps'] = $mergeProps;
-        if ($prependProps) $page['prependProps'] = $prependProps;
-        if ($deepMergeProps) $page['deepMergeProps'] = $deepMergeProps;
-        if ($matchPropsOn) $page['matchPropsOn'] = $matchPropsOn;
-        if ($onceProps) $page['onceProps'] = $onceProps;
-        if ($this->sharedKeys) $page['sharedProps'] = $this->sharedKeys;
-        if ($this->scrollProps) $page['scrollProps'] = $this->scrollProps;
+        if ($this->encryptHistory)
+            $page['encryptHistory'] = true;
+        if ($this->clearHistory)
+            $page['clearHistory'] = true;
+        if ($this->preserveFragment)
+            $page['preserveFragment'] = true;
+        if ($deferredProps)
+            $page['deferredProps'] = $deferredProps;
+        if ($rescuedProps)
+            $page['rescuedProps'] = $rescuedProps;
+        if ($mergeProps)
+            $page['mergeProps'] = $mergeProps;
+        if ($prependProps)
+            $page['prependProps'] = $prependProps;
+        if ($deepMergeProps)
+            $page['deepMergeProps'] = $deepMergeProps;
+        if ($matchPropsOn)
+            $page['matchPropsOn'] = $matchPropsOn;
+        if ($onceProps)
+            $page['onceProps'] = $onceProps;
+        if ($this->sharedKeys)
+            $page['sharedProps'] = $this->sharedKeys;
+        if ($this->scrollProps)
+            $page['scrollProps'] = $this->scrollProps;
 
         if (Http::isInertiaRequest($request)) {
             return \response()->setJSON($page, true)->setHeader('Vary', 'X-Inertia')->setHeader('X-Inertia', 'true');
@@ -238,5 +250,18 @@ class Response
         $view->setData($this->viewData + ['page' => $page], 'raw');
 
         return $view;
+    }
+
+    public function getResponse(): ResponseInterface
+    {
+        $response = $this->toResponse();
+
+        if ($response instanceof View) {
+            /** @var Config\Inertia */
+            $config = \config('Inertia');
+            return \response()->setBody($response->render($config->rootView))->setHeader('Content-Type', 'text/html');
+        }
+
+        return $response;
     }
 }

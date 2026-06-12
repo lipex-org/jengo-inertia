@@ -15,7 +15,6 @@ namespace Jengo\Inertia;
 use Closure;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
-use CodeIgniter\View\View;
 use Jengo\Inertia\Extras\Arr;
 use Jengo\Inertia\Extras\Http;
 
@@ -50,8 +49,7 @@ class ResponseFactory
         if (is_array($key)) {
             $this->sharedProps = array_merge($this->sharedProps, $key);
             $this->sharedKeys = array_unique(array_merge($this->sharedKeys, array_keys($key)));
-        }
-        else {
+        } else {
             Arr::set($this->sharedProps, $key, $value);
             $this->sharedKeys[] = $key;
         }
@@ -105,7 +103,7 @@ class ResponseFactory
      */
     public function getVersion(): string
     {
-        return (string)Arr::value($this->version);
+        return (string) Arr::value($this->version);
     }
 
     /**
@@ -160,7 +158,7 @@ class ResponseFactory
     public function location(RequestInterface|string $url): ResponseInterface
     {
         if ($url instanceof RequestInterface) {
-            $url = (string)$url->getUri();
+            $url = (string) $url->getUri();
         }
 
         if (Http::isInertiaRequest()) {
