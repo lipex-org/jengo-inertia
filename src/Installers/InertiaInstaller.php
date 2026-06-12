@@ -24,7 +24,12 @@ class InertiaInstaller extends AbstractInstaller
 
     public static function reasonForSkipping(): string
     {
-        return 'package.json not found. Please run "php spark jengo:install vite" first.';
+        return 'Inertia.js may already be installed. Please check your package.json and app/Views/app.php files.';
+    }
+
+    public static function dependencies(): array
+    {
+        return ['vite'];
     }
 
     public function shouldRun(): bool
@@ -94,6 +99,11 @@ class InertiaInstaller extends AbstractInstaller
 
     private function whichFrameworkToUse(): string
     {
+        $framework = CLI::getOption('framework');
+        if ($framework && in_array($framework, ['vue', 'react', 'svelte'])) {
+            return $framework;
+        }
+
         return CLI::prompt(
             'Which framework do you use?',
             ['vue', 'react', 'svelte'],
@@ -103,16 +113,29 @@ class InertiaInstaller extends AbstractInstaller
 
     private function whereToPlaceClientFiles(): string
     {
-        return CLI::prompt('Where should we place the client files (relative to the ROOTPATH)? (e.g. app) ', 'app', 'required');
+        $dir = CLI::getOption('client-dir');
+        if ($dir) {
+            return $dir;
+        }
+
+        return CLI::prompt('Where should we place the client files (relative to the ROOTPATH)? (e.g. app) ', 'resources/js', 'required');
     }
 
     private function wantsToInstallDependencies(): bool
     {
+        if (CLI::getOption('yes')) {
+            return true;
+        }
+
         return CLI::prompt('Should we install the dependencies?', ['y', 'n'], 'in_list[y,n]') === 'y';
     }
 
     private function wantsToUpdateHomeController(): bool
     {
+        if (CLI::getOption('yes')) {
+            return true;
+        }
+
         return CLI::prompt('Do you want to update the Home Controller?', ['y', 'n'], 'in_list[y,n]') === 'y';
     }
 

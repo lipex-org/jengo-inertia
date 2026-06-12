@@ -22,7 +22,7 @@ use Jengo\Inertia\Config\Services;
  * @method static void                               flushShared()
  * @method static mixed                              getShared(?string $key, $default = null)
  * @method static string                             getVersion()
- * @method static string                             init(array{component: string, version: string, url: string, props: array<string, mixed>} $page, bool $isHead)
+ * @method static string                             init(array{component: string, version: string, url: string, props: array<string, mixed>} $page, bool $isHead = false)
  * @method static RedirectResponse|ResponseInterface location((Request | string) $url)                                                                             :
  * @method static Response                           render(string $component, array $props = [], array $viewData = [])
  * @method static void                               share(string|array $key, $value = null)
@@ -41,6 +41,6 @@ class Inertia
      */
     public static function __callStatic(string $method, array $arguments)
     {
-        return Services::inertia()->{ $method}(...$arguments);
+        return Services::inertia()->{$method}(...$arguments);
     }
 }

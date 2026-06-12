@@ -27,7 +27,7 @@ class Directive
         $id = trim(trim($expression), "\\'\"") ?: 'app';
         $inertiaSsr = static::withSsr($page);
 
-        $template = '<div id="' . $id . '" data-page="' . htmlentities(json_encode($page)) . '"></div>';
+        $template = '<script type="application/json" data-page="app">' . json_encode($page, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) . '</script><div id="' . $id . '"></div>';
 
         if ($inertiaSsr instanceof Response) {
             $template = $inertiaSsr->body;
