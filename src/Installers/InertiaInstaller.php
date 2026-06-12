@@ -89,9 +89,9 @@ class InertiaInstaller extends AbstractInstaller
 
         // Install Dependencies
         if ($canInstallDependencies) {
-            $this->run(
-                $this->buildPackageManagerInstallCommand($pm, $dependencies)
-            );
+            foreach ($this->buildPackageManagerInstallCommands($pm, $dependencies) as $command) {
+                $this->run($command);
+            }
         }
 
         CLI::write("Inertia ({$this->framework}) installed successfully.", 'green');
@@ -141,56 +141,57 @@ class InertiaInstaller extends AbstractInstaller
 
     private function getDependencies(string $framework): array
     {
-        $common = [];
-
-        $specific = match ($framework) {
+        return match ($framework) {
             'vue' => [
-                'vue' => 'vue',
-                'inertia-vue' => '@inertiajs/vue3',
-                'vite-plugin-vue' => '@vitejs/plugin-vue',
+                'prod' => [
+                    'vue',
+                    '@inertiajs/vue3',
+                ],
+                'dev' => [
+                    '@vitejs/plugin-vue',
+                ],
             ],
             'react' => [
-                'react' => 'react',
-                'react-dom' => 'react-dom',
-                'inertia-react' => '@inertiajs/react',
-                'vite-plugin-react' => '@vitejs/plugin-react',
+                'prod' => [
+                    'react',
+                    'react-dom',
+                    '@inertiajs/react',
+                ],
+                'dev' => [
+                    '@vitejs/plugin-react',
+                    '@types/react',
+                    '@types/react-dom',
+                ],
             ],
             'svelte' => [
-                'svelte' => 'svelte',
-                'inertia-svelte' => '@inertiajs/svelte',
-                'vite-plugin-svelte' => '@sveltejs/vite-plugin-svelte',
+                'prod' => [
+                    'svelte',
+                    '@inertiajs/svelte',
+                ],
+                'dev' => [
+                    '@sveltejs/vite-plugin-svelte',
+                ],
             ],
         };
-
-        return array_merge($common, $specific);
     }
 
-    private function devDependencies(): array
+    private function buildPackageManagerInstallCommands(string $pm, array $dependencies): array
     {
-        return [
-            'vite-plugin-vue',
-            'vite-plugin-react',
-            'vite-plugin-svelte',
-        ];
-    }
-
-    private function buildPackageManagerInstallCommand(string $pm, array $dependencies): string
-    {
-        $deps = [];
-        $devDeps = $this->devDependencies();
-
-        foreach ($dependencies as $key => $name) {
-            if (in_array($key, $devDeps)) {
-                $deps[] = "-D {$name}";
-            } else {
-                $deps[] = $name;
-            }
-        }
-
-        $deps = implode(' ', $deps);
+        $commands = [];
         $baseCommand = $this->packageMangerInstallCommand($pm);
 
-        return "{$baseCommand} {$deps}";
+        if (!empty($dependencies['prod'])) {
+            $deps = implode(' ', $dependencies['prod']);
+            $commands[] = "{$baseCommand} {$deps}";
+        }
+
+        if (!empty($dependencies['dev'])) {
+            $deps = implode(' ', $dependencies['dev']);
+            $flag = ($pm === 'yarn') ? '--dev' : '-D';
+            $commands[] = "{$baseCommand} {$flag} {$deps}";
+        }
+
+        return $commands;
     }
 
     private function updateViteConfig(): void
