@@ -1,6 +1,6 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import GuestLayout from '../../Layouts/GuestLayout';
-import { FormEventHandler } from 'react';
+import { SubmitEvent } from 'react';
 
 export default function Login({ error }: { error?: string }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -9,7 +9,7 @@ export default function Login({ error }: { error?: string }) {
         remember: false,
     });
 
-    const submit: FormEventHandler = (e) => {
+    const submit = (e: SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         post('/login');
     };
@@ -17,6 +17,16 @@ export default function Login({ error }: { error?: string }) {
     return (
         <GuestLayout>
             <Head title="Log in" />
+
+            <button
+                type="button"
+                onClick={(e) => {
+                    e.preventDefault();
+                    router.visit('/login');
+                }}
+            >
+                Go to Login
+            </button>
 
             {error && <div className="mb-4 font-medium text-sm text-red-600">{error}</div>}
 
@@ -28,7 +38,7 @@ export default function Login({ error }: { error?: string }) {
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        className="mt-1 block p-2 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                         autoComplete="username"
                         onChange={(e) => setData('email', e.target.value)}
                         required
@@ -43,7 +53,7 @@ export default function Login({ error }: { error?: string }) {
                         type="password"
                         name="password"
                         value={data.password}
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        className="mt-1 block p-2 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                         autoComplete="current-password"
                         onChange={(e) => setData('password', e.target.value)}
                         required

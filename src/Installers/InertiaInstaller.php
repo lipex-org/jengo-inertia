@@ -29,7 +29,7 @@ class InertiaInstaller extends AbstractInstaller
 
     public static function dependencies(): array
     {
-        return ['vite'];
+        return ['vite', 'typescript'];
     }
 
     public function shouldRun(): bool
@@ -47,18 +47,18 @@ class InertiaInstaller extends AbstractInstaller
         }
 
         $this->framework = $this->whichFrameworkToUse();
-        // resolve . and / as the root directory
         $this->resolveClientDirectory();
 
-        $pm = $this->detectPackageManager();
-        $dependencies = $this->getDependencies($this->framework);
         $canInstallDependencies = $this->wantsToInstallDependencies();
-        $canUpdateHomeController = $this->wantsToUpdateHomeController();
-        $stubsDir = __DIR__ . '/../Publisher/Stubs';
+        $pm = null;
 
         if ($canInstallDependencies) {
-            CLI::write("Using package manager: {$pm}", 'cyan');
+            $pm = $this->node(); // Use existing if detected, otherwise fallback in PackageManager
+            CLI::write("Using package manager: {$pm->getManager()}", 'cyan');
         }
+
+        $canUpdateHomeController = $this->wantsToUpdateHomeController();
+        $stubsDir = __DIR__ . '/../Publisher/Stubs';
 
         // Publish View
         $sourceView = "{$stubsDir}/View/root.php";
@@ -88,9 +88,14 @@ class InertiaInstaller extends AbstractInstaller
         }
 
         // Install Dependencies
-        if ($canInstallDependencies) {
-            foreach ($this->buildPackageManagerInstallCommands($pm, $dependencies) as $command) {
-                $this->run($command);
+        if ($canInstallDependencies && $pm) {
+            $dependencies = $this->getDependencies($this->framework);
+            
+            if (!empty($dependencies['prod'])) {
+                $this->run($pm->getAddCommand($dependencies['prod']));
+            }
+            if (!empty($dependencies['dev'])) {
+                $this->run($pm->getAddCommand($dependencies['dev'], true));
             }
         }
 
@@ -119,15 +124,6 @@ class InertiaInstaller extends AbstractInstaller
         }
 
         return CLI::prompt('Where should we place the client files (relative to the ROOTPATH)? (e.g. app) ', 'resources/js', 'required');
-    }
-
-    private function wantsToInstallDependencies(): bool
-    {
-        if (CLI::getOption('yes')) {
-            return true;
-        }
-
-        return CLI::prompt('Should we install the dependencies?', ['y', 'n'], 'in_list[y,n]') === 'y';
     }
 
     private function wantsToUpdateHomeController(): bool
@@ -159,8 +155,6 @@ class InertiaInstaller extends AbstractInstaller
                 ],
                 'dev' => [
                     '@vitejs/plugin-react',
-                    '@types/react',
-                    '@types/react-dom',
                 ],
             ],
             'svelte' => [
@@ -173,25 +167,6 @@ class InertiaInstaller extends AbstractInstaller
                 ],
             ],
         };
-    }
-
-    private function buildPackageManagerInstallCommands(string $pm, array $dependencies): array
-    {
-        $commands = [];
-        $baseCommand = $this->packageMangerInstallCommand($pm);
-
-        if (!empty($dependencies['prod'])) {
-            $deps = implode(' ', $dependencies['prod']);
-            $commands[] = "{$baseCommand} {$deps}";
-        }
-
-        if (!empty($dependencies['dev'])) {
-            $deps = implode(' ', $dependencies['dev']);
-            $flag = ($pm === 'yarn') ? '--dev' : '-D';
-            $commands[] = "{$baseCommand} {$flag} {$deps}";
-        }
-
-        return $commands;
     }
 
     private function updateViteConfig(): void

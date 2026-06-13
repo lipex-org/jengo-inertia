@@ -1,41 +1,28 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import GuestLayout from '../../Layouts/GuestLayout';
 import { FormEventHandler } from 'react';
 
-export default function Register() {
-    const { data, setData, post, processing, errors } = useForm({
-        username: '',
-        email: '',
+export default function ResetPassword({ token, email }: { token: string, email: string }) {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        token: token,
+        email: email,
         password: '',
         password_confirm: '',
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post('/register');
+        post('/reset-password', {
+            onFinish: () => reset('password', 'password_confirm'),
+        });
     };
 
     return (
         <GuestLayout>
-            <Head title="Register" />
+            <Head title="Reset Password" />
 
             <form onSubmit={submit}>
                 <div>
-                    <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
-                    <input
-                        id="username"
-                        type="text"
-                        name="username"
-                        value={data.username}
-                        className="mt-1 block p-2 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        autoComplete="username"
-                        onChange={(e) => setData('username', e.target.value)}
-                        required
-                    />
-                    {errors.username && <div className="mt-2 text-sm text-red-600">{errors.username}</div>}
-                </div>
-
-                <div className="mt-4">
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
                     <input
                         id="email"
@@ -43,7 +30,7 @@ export default function Register() {
                         name="email"
                         value={data.email}
                         className="mt-1 block p-2 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        autoComplete="email"
+                        autoComplete="username"
                         onChange={(e) => setData('email', e.target.value)}
                         required
                     />
@@ -59,6 +46,7 @@ export default function Register() {
                         value={data.password}
                         className="mt-1 block p-2 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                         autoComplete="new-password"
+                        autoFocus
                         onChange={(e) => setData('password', e.target.value)}
                         required
                     />
@@ -80,22 +68,15 @@ export default function Register() {
                     {errors.password_confirm && <div className="mt-2 text-sm text-red-600">{errors.password_confirm}</div>}
                 </div>
 
-                <div className="mt-6">
+                <div className="flex items-center justify-end mt-4">
                     <button
                         type="submit"
                         className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                         disabled={processing}
                     >
-                        Register
+                        Reset Password
                     </button>
                 </div>
-
-                <p className="mt-4 text-center text-sm text-gray-600">
-                    Already have an account?{' '}
-                    <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-                        Log in
-                    </Link>
-                </p>
             </form>
         </GuestLayout>
     );

@@ -25,7 +25,7 @@ const submit = () => {
                     id="username"
                     type="text"
                     v-model="form.username"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    class="mt-1 block w-full p-2 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     required
                     autofocus
                     autocomplete="username"
@@ -39,7 +39,7 @@ const submit = () => {
                     id="email"
                     type="email"
                     v-model="form.email"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    class="mt-1 block w-full p-2 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     required
                     autocomplete="email"
                 />
@@ -52,7 +52,7 @@ const submit = () => {
                     id="password"
                     type="password"
                     v-model="form.password"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    class="mt-1 block w-full p-2 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     required
                     autocomplete="new-password"
                 />
@@ -65,7 +65,7 @@ const submit = () => {
                     id="password_confirm"
                     type="password"
                     v-model="form.password_confirm"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    class="mt-1 block w-full p-2 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     required
                     autocomplete="new-password"
                 />
