@@ -65,4 +65,19 @@ class Http
         $value = self::getHeaderValue('X-Inertia-Except-Once-Props', '', $request);
         return array_filter(explode(',', is_array($value) ? implode(',', $value) : $value));
     }
+
+    /**
+     * @return list<list<string>|string>|string
+     * @psalm-return array<int|string, array<string, string>|string>|string
+     */
+    public static function getHeaderValue(string $header, string $default = '', ?RequestInterface $request = null): array |string
+    {
+        $request ??= request();
+
+        if ($request->hasHeader($header)) {
+            return $request->header($header)->getValue();
+        }
+
+        return $default;
+    }
 }

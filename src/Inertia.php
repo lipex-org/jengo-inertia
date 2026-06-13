@@ -24,7 +24,7 @@ use Jengo\Inertia\Config\Services;
  * @method static string                             getVersion()
  * @method static string                             init(array{component: string, version: string, url: string, props: array<string, mixed>} $page, bool $isHead = false)
  * @method static RedirectResponse|ResponseInterface location((Request | string) $url)                                                                             :
- * @method static Response                           render(string $component, array $props = [], array $viewData = [])
+ * @method static ResponseInterface                  render(string $component, array $props = [], array $viewData = [])
  * @method static void                               share(string|array $key, $value = null)
  * @method static void                               version((Closure | string | null) $version)
  * @method static Props\Lazy                         lazy(Closure $callback)

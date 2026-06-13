@@ -17,6 +17,7 @@ use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Jengo\Inertia\Extras\Arr;
 use Jengo\Inertia\Extras\Http;
+use function Jengo\Base\vite_version;
 
 /**
  * @psalm-api
@@ -103,7 +104,14 @@ class ResponseFactory
      */
     public function getVersion(): string
     {
-        return (string) Arr::value($this->version);
+        /** @var Config\Inertia $config */
+        $config = config('Inertia');
+
+        if (isset($config->version) && $config->version !== null) {
+            return $config->version;
+        }
+
+        return (string) vite_version();
     }
 
     /**
@@ -111,10 +119,10 @@ class ResponseFactory
      *
      * @param array<string, mixed> $props
      */
-    public function render(string $component, array $props = []): Response
+    public function render(string $component, array $props = []): ResponseInterface
     {
         return (new Response($component, array_merge($this->sharedProps, $props), $this->getVersion()))
-            ->withSharedKeys($this->sharedKeys);
+            ->withSharedKeys($this->sharedKeys)->getResponse();
     }
 
     public function lazy(Closure $callback): Props\Lazy

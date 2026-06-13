@@ -25,15 +25,6 @@ use Jengo\Inertia\Extras\Http;
  */
 class Middleware implements FilterInterface
 {
-    public function withVersion(): string|null|bool
-    {
-        if (file_exists($manifest = './build/manifest.json')) {
-            return md5_file($manifest);
-        }
-
-        return null;
-    }
-
     /**
      * @psalm-return array{alert: Closure():?string, errors: Closure():object, flash: Closure():array{success: ?string, error: ?string}}
      * @return array{alert: Closure():?string, errors: Closure():object, flash: Closure():array{success: ?string, error: ?string}}
@@ -52,14 +43,13 @@ class Middleware implements FilterInterface
      */
     public function before(RequestInterface $request, $arguments = null): void
     {
-        Inertia::version(fn() => $this->withVersion());
         Inertia::share($this->withShare($request));
     }
 
     /**
      * Handle the incoming request.
      *
-     * @param null $arguments
+     * @param array|null $arguments
      *
      * @return mixed
      */
@@ -70,11 +60,6 @@ class Middleware implements FilterInterface
         if ($request->hasHeader('Precognition')) {
             $response->setHeader('Vary', 'Precognition');
             $response->setHeader('Precognition', 'true');
-
-            // If it's a 200/201 but was a precognition request, 
-            // and we didn't have errors, we might want to return 204.
-            // But validation errors usually result in a redirect back with errors in CI4.
-            // So we need to catch that.
         }
 
         if (!$request->hasHeader('X-Inertia')) {
@@ -85,8 +70,11 @@ class Middleware implements FilterInterface
             return $response;
         }
 
-        if (request()->is('get') && Http::getHeaderValue('X-Inertia-Version') !== Inertia::getVersion()) {
-            $response = $this->onVersionChange($request);
+        // Only check version in production to avoid full page reloads during development
+        if (ENVIRONMENT !== 'development' && request()->is('get')) {
+            if (Http::getHeaderValue('X-Inertia-Version') !== Inertia::getVersion()) {
+                $response = $this->onVersionChange($request);
+            }
         }
 
         if ($response->getStatusCode() === $response::HTTP_OK && empty($response->getJSON())) {
@@ -129,13 +117,13 @@ class Middleware implements FilterInterface
         $errors = session()->getFlashdata('errors') ?? $validation->getErrors();
 
         if (!$errors) {
-            return (object)[];
+            return (object) [];
         }
 
         if ($request->hasHeader('x-inertia-error-bag')) {
-            return (object)[Http::getHeaderValue('x-inertia-error-bag') => $errors];
+            return (object) [Http::getHeaderValue('x-inertia-error-bag') => $errors];
         }
 
-        return (object)$errors;
+        return (object) $errors;
     }
 }
