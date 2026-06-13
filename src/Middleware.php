@@ -32,9 +32,8 @@ class Middleware implements FilterInterface
     public function withShare(RequestInterface $request): array
     {
         return [
-            'alert' => static fn() => session()->getFlashdata('alert'),
             'errors' => fn() => $this->resolveValidationErrors($request),
-            'flash' => static fn() => ['success' => session()->getFlashdata('success'), 'error' => session()->getFlashdata('error')],
+            'flash' => static fn() => session()->getFlashdata(),
         ];
     }
 
