@@ -6,11 +6,14 @@ namespace Jengo\Inertia\Installers;
 
 use CodeIgniter\CLI\CLI;
 use Jengo\Base\Installers\Contracts\AbstractInstaller;
+use function Jengo\Base\Support\arr;
+use function Jengo\Base\Support\str;
 
 class InertiaInstaller extends AbstractInstaller
 {
     private string $framework;
     private string $clientDir;
+    private string $stubsDir;
 
     public static function name(): string
     {
@@ -40,6 +43,7 @@ class InertiaInstaller extends AbstractInstaller
     public function install(): void
     {
         $this->addRun();
+        $this->stubsDir = __DIR__ . '/../Publisher/Stubs';
 
         if (!$this->shouldRun()) {
             CLI::error('package.json not found. Please run "php spark jengo:install vite" first.');
@@ -58,10 +62,9 @@ class InertiaInstaller extends AbstractInstaller
         }
 
         $canUpdateHomeController = $this->wantsToUpdateHomeController();
-        $stubsDir = __DIR__ . '/../Publisher/Stubs';
 
         // Publish View
-        $sourceView = "{$stubsDir}/View/root.php";
+        $sourceView = "{$this->stubsDir}/View/root.php";
         $destView = $this->root . 'app/Views/app.php';
 
         if (!copy($sourceView, $destView)) {
@@ -70,9 +73,9 @@ class InertiaInstaller extends AbstractInstaller
 
         // Publish Client Stubs
         $sourceStubDir = match ($this->framework) {
-            'vue' => "{$stubsDir}/Client/Vue",
-            'react' => "{$stubsDir}/Client/React",
-            'svelte' => "{$stubsDir}/Client/Svelte",
+            'vue' => "{$this->stubsDir}/Client/Vue",
+            'react' => "{$this->stubsDir}/Client/React",
+            'svelte' => "{$this->stubsDir}/Client/Svelte",
         };
 
         CLI::write("Publishing client stubs to {$this->clientDir}", 'yellow');
@@ -90,6 +93,8 @@ class InertiaInstaller extends AbstractInstaller
         // Update Filters
         $this->publishFilters();
         $this->updateFiltersConfig();
+
+        $this->publishCSSFile();
 
         // Install Dependencies
         if ($canInstallDependencies && $pm) {
@@ -223,14 +228,26 @@ class InertiaInstaller extends AbstractInstaller
 
     private function updateHomeController(): void
     {
-        $this->publish(__DIR__ . '/../Publisher/Stubs/Controllers', 'app/Controllers');
+        $this->publish("{$this->stubsDir}/Controllers", 'app/Controllers');
         CLI::write("Home Controller published.", 'green');
     }
 
     private function publishFilters(): void
     {
-        $this->publish(__DIR__ . '/../Publisher/Stubs/Filters', 'app/Filters');
+        $this->publish("{$this->stubsDir}/Filters", 'app/Filters');
         CLI::write("Inertia filter published.", 'green');
+    }
+
+    private function publishCSSFile(): void
+    {
+        $url = str($this->clientDir);
+        if ($url->endsWith('js')) {
+            $url = arr($url->explode('/'))->unsetLast()->implode('/')
+                |> fn($s) => str($s)->append('/css');
+        }
+
+        $this->publish("{$this->stubsDir}/CSS", $url);
+        CLI::write("CSS file published.", 'green');
     }
 
     private function updateFiltersConfig(): void

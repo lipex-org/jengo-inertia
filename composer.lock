@@ -85,16 +85,16 @@
         },
         {
             "name": "jengo/base",
-            "version": "v1.1.8",
+            "version": "v1.1.20",
             "source": {
                 "type": "git",
                 "url": "https://github.com/lipex-org/jengo-base.git",
-                "reference": "fad8332cd1717804c9c9e3f619a74801474e13e1"
+                "reference": "befa46cc6e6e4716cd2302a79f7afd5d20d23a53"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/lipex-org/jengo-base/zipball/fad8332cd1717804c9c9e3f619a74801474e13e1",
-                "reference": "fad8332cd1717804c9c9e3f619a74801474e13e1",
+                "url": "https://api.github.com/repos/lipex-org/jengo-base/zipball/befa46cc6e6e4716cd2302a79f7afd5d20d23a53",
+                "reference": "befa46cc6e6e4716cd2302a79f7afd5d20d23a53",
                 "shasum": ""
             },
             "require": {
@@ -107,7 +107,8 @@
             "type": "library",
             "autoload": {
                 "files": [
-                    "src/functions.php"
+                    "src/functions.php",
+                    "src/Support/functions.php"
                 ],
                 "psr-4": {
                     "Jengo\\Base\\": "src/",
@@ -127,9 +128,9 @@
             "description": "New Jengo based on the current knowledge I have of ci4",
             "support": {
                 "issues": "https://github.com/lipex-org/jengo-base/issues",
-                "source": "https://github.com/lipex-org/jengo-base/tree/v1.1.8"
+                "source": "https://github.com/lipex-org/jengo-base/tree/v1.1.20"
             },
-            "time": "2026-06-13T13:27:53+00:00"
+            "time": "2026-06-14T16:49:12+00:00"
         },
         {
             "name": "laminas/laminas-escaper",
@@ -2764,16 +2765,16 @@
         },
         {
             "name": "friendsofphp/php-cs-fixer",
-            "version": "v3.95.6",
+            "version": "v3.95.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer.git",
-                "reference": "804e6c9488a836ccb4a34984c6415ac56dc6554c"
+                "reference": "4fa4102a5617acae53f804f7c81475aaa2d6e813"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHP-CS-Fixer/PHP-CS-Fixer/zipball/804e6c9488a836ccb4a34984c6415ac56dc6554c",
-                "reference": "804e6c9488a836ccb4a34984c6415ac56dc6554c",
+                "url": "https://api.github.com/repos/PHP-CS-Fixer/PHP-CS-Fixer/zipball/4fa4102a5617acae53f804f7c81475aaa2d6e813",
+                "reference": "4fa4102a5617acae53f804f7c81475aaa2d6e813",
                 "shasum": ""
             },
             "require": {
@@ -2857,7 +2858,7 @@
             ],
             "support": {
                 "issues": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/issues",
-                "source": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/tree/v3.95.6"
+                "source": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/tree/v3.95.7"
             },
             "funding": [
                 {
@@ -2865,7 +2866,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-06-13T13:24:51+00:00"
+            "time": "2026-06-13T17:51:53+00:00"
         },
         {
             "name": "icanhazstring/composer-unused",
