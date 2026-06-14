@@ -243,7 +243,7 @@ class InertiaInstaller extends AbstractInstaller
         $url = str($this->clientDir);
         if ($url->endsWith('js')) {
             $url = arr($url->explode('/'))->unsetLast()->implode('/')
-                |> fn($s) => str($s)->append('/css');
+                |> (fn($s) => str($s)->append('/css'));
         }
 
         $this->publish("{$this->stubsDir}/CSS", $url);
