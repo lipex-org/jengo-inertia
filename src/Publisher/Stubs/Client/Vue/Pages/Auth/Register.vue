@@ -22,6 +22,7 @@ const submit = () => {
 
 <template>
     <GuestLayout>
+
         <Head title="Create Account" />
 
         <div class="mb-8">
@@ -29,75 +30,48 @@ const submit = () => {
             <p class="text-slate-500 mt-1">Join the Jengo community today.</p>
         </div>
 
-        <div v-if="flash.error" class="mb-6 p-4 rounded-xl bg-red-50 text-red-700 text-sm font-medium border border-red-100">
+        <div v-if="flash?.error"
+            class="mb-6 p-4 rounded-xl bg-red-50 text-red-700 text-sm font-medium border border-red-100">
             {{ flash.error }}
         </div>
 
         <form @submit.prevent="submit" class="space-y-5">
             <div>
                 <label for="username" class="block text-sm font-semibold text-slate-700 mb-1">Username</label>
-                <input
-                    id="username"
-                    type="text"
-                    v-model="form.username"
-                    class="jengo-input"
-                    placeholder="johndoe"
-                    required
-                    autofocus
-                    autocomplete="username"
-                />
-                <div v-if="form.errors.username" class="mt-2 text-sm text-red-600 font-medium">{{ form.errors.username }}</div>
+                <input id="username" type="text" v-model="form.username" class="jengo-input" placeholder="johndoe"
+                    required autofocus autocomplete="username" />
+                <div v-if="form.errors.username" class="mt-2 text-sm text-red-600 font-medium">{{ form.errors.username
+                    }}</div>
             </div>
 
             <div class="mt-4">
                 <label for="email" class="block text-sm font-semibold text-slate-700 mb-1">Email Address</label>
-                <input
-                    id="email"
-                    type="email"
-                    v-model="form.email"
-                    class="jengo-input"
-                    placeholder="name@example.com"
-                    required
-                    autocomplete="email"
-                />
-                <div v-if="form.errors.email" class="mt-2 text-sm text-red-600 font-medium">{{ form.errors.email }}</div>
+                <input id="email" type="email" v-model="form.email" class="jengo-input" placeholder="name@example.com"
+                    required autocomplete="email" />
+                <div v-if="form.errors.email" class="mt-2 text-sm text-red-600 font-medium">{{ form.errors.email }}
+                </div>
             </div>
 
             <div class="mt-4">
                 <label for="password" class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
-                <input
-                    id="password"
-                    type="password"
-                    v-model="form.password"
-                    class="jengo-input"
-                    placeholder="••••••••"
-                    required
-                    autocomplete="new-password"
-                />
-                <div v-if="form.errors.password" class="mt-2 text-sm text-red-600 font-medium">{{ form.errors.password }}</div>
+                <input id="password" type="password" v-model="form.password" class="jengo-input" placeholder="••••••••"
+                    required autocomplete="new-password" />
+                <div v-if="form.errors.password" class="mt-2 text-sm text-red-600 font-medium">{{ form.errors.password
+                    }}</div>
             </div>
 
             <div class="mt-4">
-                <label for="password_confirm" class="block text-sm font-semibold text-slate-700 mb-1">Confirm Password</label>
-                <input
-                    id="password_confirm"
-                    type="password"
-                    v-model="form.password_confirm"
-                    class="jengo-input"
-                    placeholder="••••••••"
-                    required
-                    autocomplete="new-password"
-                />
-                <div v-if="form.errors.password_confirm" class="mt-2 text-sm text-red-600 font-medium">{{ form.errors.password_confirm }}</div>
+                <label for="password_confirm" class="block text-sm font-semibold text-slate-700 mb-1">Confirm
+                    Password</label>
+                <input id="password_confirm" type="password" v-model="form.password_confirm" class="jengo-input"
+                    placeholder="••••••••" required autocomplete="new-password" />
+                <div v-if="form.errors.password_confirm" class="mt-2 text-sm text-red-600 font-medium">{{
+                    form.errors.password_confirm }}</div>
             </div>
 
             <div class="pt-2">
-                <button
-                    type="submit"
-                    :class="{ 'opacity-50': form.processing }"
-                    :disabled="form.processing"
-                    class="jengo-button w-full"
-                >
+                <button type="submit" :class="{ 'opacity-50': form.processing }" :disabled="form.processing"
+                    class="jengo-button w-full">
                     Create Account
                 </button>
             </div>

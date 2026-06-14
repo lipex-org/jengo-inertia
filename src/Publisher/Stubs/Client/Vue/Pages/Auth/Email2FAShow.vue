@@ -21,6 +21,7 @@ const submit = () => {
 
 <template>
     <GuestLayout>
+
         <Head title="2FA Verification" />
 
         <div class="mb-8">
@@ -28,32 +29,23 @@ const submit = () => {
             <p class="text-slate-500 mt-1">Please confirm your email to receive a code.</p>
         </div>
 
-        <div v-if="flash.error" class="mb-6 p-4 rounded-xl bg-red-50 text-red-700 text-sm font-medium border border-red-100">
+        <div v-if="flash?.error"
+            class="mb-6 p-4 rounded-xl bg-red-50 text-red-700 text-sm font-medium border border-red-100">
             {{ flash.error }}
         </div>
 
         <form @submit.prevent="submit" class="space-y-5">
             <div>
                 <label for="email" class="block text-sm font-semibold text-slate-700 mb-1">Confirm Email</label>
-                <input
-                    id="email"
-                    type="email"
-                    v-model="form.email"
-                    class="jengo-input"
-                    placeholder="name@example.com"
-                    required
-                    autofocus
-                />
-                <div v-if="form.errors.email" class="mt-2 text-sm text-red-600 font-medium">{{ form.errors.email }}</div>
+                <input id="email" type="email" v-model="form.email" class="jengo-input" placeholder="name@example.com"
+                    required autofocus />
+                <div v-if="form.errors.email" class="mt-2 text-sm text-red-600 font-medium">{{ form.errors.email }}
+                </div>
             </div>
 
             <div class="pt-2">
-                <button
-                    type="submit"
-                    :class="{ 'opacity-50': form.processing }"
-                    :disabled="form.processing"
-                    class="jengo-button w-full"
-                >
+                <button type="submit" :class="{ 'opacity-50': form.processing }" :disabled="form.processing"
+                    class="jengo-button w-full">
                     Send Code
                 </button>
             </div>

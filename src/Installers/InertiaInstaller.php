@@ -87,10 +87,14 @@ class InertiaInstaller extends AbstractInstaller
             $this->updateHomeController();
         }
 
+        // Update Filters
+        $this->publishFilters();
+        $this->updateFiltersConfig();
+
         // Install Dependencies
         if ($canInstallDependencies && $pm) {
             $dependencies = $this->getDependencies($this->framework);
-            
+
             if (!empty($dependencies['prod'])) {
                 $this->run($pm->getAddCommand($dependencies['prod']));
             }
@@ -219,26 +223,48 @@ class InertiaInstaller extends AbstractInstaller
 
     private function updateHomeController(): void
     {
-        $file = APPPATH . 'Controllers/Home.php';
-
-        $content = <<<'PHP'
-<?php
-
-namespace App\Controllers;
-
-use Jengo\Inertia\Inertia;
-
-class Home extends BaseController
-{
-    public function index()
-    {
-        return Inertia::render('Welcome');
+        $this->publish(__DIR__ . '/../Publisher/Stubs/Controllers', 'app/Controllers');
+        CLI::write("Home Controller published.", 'green');
     }
-}
-PHP;
 
-        $this->writeFile($file, $content);
-        CLI::write("Home Controller updated.", 'green');
+    private function publishFilters(): void
+    {
+        $this->publish(__DIR__ . '/../Publisher/Stubs/Filters', 'app/Filters');
+        CLI::write("Inertia filter published.", 'green');
+    }
+
+    private function updateFiltersConfig(): void
+    {
+        $configFile = ROOTPATH . 'app/Config/Filters.php';
+        if (!file_exists($configFile)) {
+            return;
+        }
+
+        $content = file_get_contents($configFile);
+
+        // Add Alias
+        if (!str_contains($content, "'inertia' => \App\Filters\Inertia::class")) {
+            $content = preg_replace(
+                "/(public array \$aliases = \[)/",
+                "$1\n        'inertia' => \App\Filters\Inertia::class,",
+                $content
+            );
+        }
+
+        // Add to Global Before
+        if (!str_contains($content, "'inertia'") || !preg_match("/public array \$globals = \[.*?before' => \[.*?'inertia'/s", $content)) {
+            // This is a bit tricky due to nested arrays. 
+            // We look for 'globals' array, then its 'before' section.
+            $content = preg_replace(
+                "/(public array \$globals = \[.*?'before' => \[)/s",
+                "$1\n            'inertia',",
+                $content,
+                1
+            );
+        }
+
+        $this->writeFile($configFile, $content);
+        CLI::write("Filters config updated.", 'green');
     }
 
     private function resolveClientDirectory(): void

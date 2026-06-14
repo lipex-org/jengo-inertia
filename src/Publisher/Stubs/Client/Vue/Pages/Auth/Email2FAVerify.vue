@@ -24,7 +24,7 @@ const submit = () => {
             <p class="text-slate-500 mt-1">Enter the 6-digit code sent to your email.</p>
         </div>
 
-        <div v-if="flash.error" class="mb-6 p-4 rounded-xl bg-red-50 text-red-700 text-sm font-medium border border-red-100">
+        <div v-if="flash?.error" class="mb-6 p-4 rounded-xl bg-red-50 text-red-700 text-sm font-medium border border-red-100">
             {{ flash.error }}
         </div>
 

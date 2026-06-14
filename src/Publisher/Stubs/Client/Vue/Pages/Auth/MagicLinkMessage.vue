@@ -9,9 +9,10 @@ const flash = computed(() => page.props.flash)
 
 <template>
     <GuestLayout>
+
         <Head title="Magic Link Sent" />
 
-        <div v-if="flash.message" class="mb-4 font-medium text-sm text-green-600">{{ flash.message }}</div>
+        <div v-if="flash?.message" class="mb-4 font-medium text-sm text-green-600">{{ flash.message }}</div>
 
         <div class="mb-4 text-sm text-gray-600">
             We have emailed you a magic link. Please check your inbox and click the link to log in.
