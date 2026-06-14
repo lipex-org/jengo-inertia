@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #6366f1;
+  --color-brand-secondary: #8b5cf6;
+  --color-brand-dark: #0f172a;
+  --color-brand-light: #f8fafc;
+  --color-brand-accent: #10b981;
+}
+
+:root {
+  --jengo-primary: var(--color-brand-primary);
+  --jengo-secondary: var(--color-brand-secondary);
+  --jengo-dark: var(--color-brand-dark);
+  --jengo-light: var(--color-brand-light);
+  --jengo-accent: var(--color-brand-accent);
+}
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+}
+
+@utility jengo-gradient {
+  background: linear-gradient(135deg, var(--color-brand-primary) 0%, var(--color-brand-secondary) 100%);
+}
+
+.jengo-glass {
+  @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+}
+
+.jengo-card {
+  @apply bg-white rounded-2xl shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md;
+}
+
+.jengo-input {
+  @apply w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary outline-none transition-all;
+}
+
+.jengo-button {
+  /* This will now compile perfectly because jengo-gradient is an official utility! */
+  @apply px-6 py-3 rounded-xl font-semibold text-white jengo-gradient shadow-lg shadow-brand-primary/25 hover:shadow-brand-primary/40 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:pointer-events-none;
+}
