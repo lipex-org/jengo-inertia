@@ -93,7 +93,6 @@ class InertiaInstaller extends AbstractInstaller
         // Update Filters
         $this->publishFilters();
         $this->updateFiltersConfig();
-
         $this->publishCSSFile();
 
         // Install Dependencies
@@ -252,7 +251,7 @@ class InertiaInstaller extends AbstractInstaller
 
     private function updateFiltersConfig(): void
     {
-        $configFile = ROOTPATH . 'app/Config/Filters.php';
+        $configFile = APPPATH . 'Config/Filters.php';
         if (!file_exists($configFile)) {
             return;
         }
