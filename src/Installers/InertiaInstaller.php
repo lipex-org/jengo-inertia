@@ -170,6 +170,7 @@ class InertiaInstaller extends AbstractInstaller
                 ],
                 'dev' => [
                     '@vitejs/plugin-react',
+                    '@types/react-dom'
                 ],
             ],
             'svelte' => [
