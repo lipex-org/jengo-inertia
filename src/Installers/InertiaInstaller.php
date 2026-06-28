@@ -6,11 +6,14 @@ namespace Jengo\Inertia\Installers;
 
 use CodeIgniter\CLI\CLI;
 use Jengo\Base\Installers\Contracts\AbstractInstaller;
+use Jengo\Base\Traits\HasClientAssets;
 use function Jengo\Base\Support\arr;
 use function Jengo\Base\Support\str;
 
 class InertiaInstaller extends AbstractInstaller
 {
+    use HasClientAssets;
+
     private string $framework;
     private string $clientDir;
     private string $stubsDir;
@@ -126,14 +129,16 @@ class InertiaInstaller extends AbstractInstaller
         );
     }
 
-    private function whereToPlaceClientFiles(): string
+    private function resolveClientDirectory(): void
     {
+        $this->ensureClientDirectory();
+
         $dir = CLI::getOption('client-dir');
-        if ($dir) {
-            return $dir;
+        if (!$dir) {
+            $dir = 'resources/js';
         }
 
-        return CLI::prompt('Where should we place the client files (relative to the ROOTPATH)? (e.g. app) ', 'resources/js', 'required');
+        $this->clientDir = $dir;
     }
 
     private function wantsToUpdateHomeController(): bool
