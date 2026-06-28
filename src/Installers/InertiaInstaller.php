@@ -133,12 +133,7 @@ class InertiaInstaller extends AbstractInstaller
     {
         $this->ensureClientDirectory();
 
-        $dir = CLI::getOption('client-dir');
-        if (!$dir) {
-            $dir = 'resources/js';
-        }
-
-        $this->clientDir = trim($dir, '/') . '/' . 'client';
+        $this->clientDir = 'resources/js/inertia';
     }
 
     private function wantsToUpdateHomeController(): bool
