@@ -8,6 +8,6 @@ class Home extends BaseController
 {
     public function index()
     {
-        return Inertia::render('Welcome');
+        return Inertia::render('welcome');
     }
 }
