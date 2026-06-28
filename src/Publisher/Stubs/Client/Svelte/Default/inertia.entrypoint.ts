@@ -3,10 +3,12 @@ import { mount } from 'svelte'
 
 createInertiaApp({
     resolve: name => {
-        const pages = import.meta.glob('./Pages/**/*.svelte', { eager: true })
-        return pages[`./Pages/${name}.svelte`] as any;
+        const pages = import.meta.glob('./pages/**/*.svelte', { eager: true })
+        return pages[`./pages/${name}.svelte`] as any;
     },
     setup({ el, App, props }) {
-        mount(App, { target: el, props })
+        if (el) {
+            mount(App, { target: el, props })
+        }
     },
 })
