@@ -138,7 +138,7 @@ class InertiaInstaller extends AbstractInstaller
             $dir = 'resources/js';
         }
 
-        $this->clientDir = $dir;
+        $this->clientDir = trim($dir, '/') . '/' . 'client';
     }
 
     private function wantsToUpdateHomeController(): bool
