@@ -22,7 +22,7 @@ class Inertia extends Middleware
                         'id',
                         'username',
                         'email'
-                    ]) ?? null
+                    ])->asNullWhenEmpty()
             ],
         ]);
     }
