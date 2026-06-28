@@ -1,0 +1,95 @@
+import { Head } from '@inertiajs/react';
+
+export default function Welcome() {
+    return (
+            <Head title="Jengo - The Powerhouse Framework" />
+            <div className="min-h-screen bg-base-200 text-base-content relative overflow-hidden flex flex-col">
+                {/* Background decorative elements */}
+                <div className="absolute -top-48 -left-48 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
+                <div className="absolute top-1/2 -right-48 w-96 h-96 bg-secondary/10 rounded-full blur-3xl"></div>
+
+                {/* Navigation */}
+                <nav className="relative z-10 px-6 py-8 flex justify-between items-center max-w-7xl mx-auto w-full">
+                    <div className="flex items-center gap-2 group">
+                        <div className="w-10 h-10 bg-gradient-to-tr from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
+                            <span className="text-xl font-black text-white italic">J</span>
+                        </div>
+                        <span className="text-2xl font-black tracking-tighter text-base-content">JENGO</span>
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                        <a href="https://github.com/jengophp" target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
+                            Documentation
+                        </a>
+                    </div>
+                </nav>
+
+                {/* Hero Section */}
+                <main className="relative z-10 grow flex flex-col items-center justify-center px-6 text-center">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8">
+                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                        <span className="text-xs font-bold text-primary uppercase tracking-widest">Version 1.0 is here</span>
+                    </div>
+
+                    <h1 className="text-6xl md:text-8xl font-black text-base-content tracking-tight mb-6 leading-none">
+                        Build faster with <span className="text-transparent bg-clip-text bg-gradient-to-tr from-primary to-secondary">Jengo</span>
+                    </h1>
+
+                    <p className="max-w-2xl text-xl text-base-content/75 mb-12 leading-relaxed">
+                        The ultimate CodeIgniter 4 powerhouse. Seamlessly integrated with Inertia.js and React to help you ship
+                        beautiful applications in record time.
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+                        <a href="https://github.com/jengophp" target="_blank" rel="noreferrer"
+                            className="btn btn-primary btn-lg px-10 shadow-md">
+                            Get Started
+                        </a>
+                    </div>
+
+                    <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl w-full text-left">
+                        <div className="card bg-base-100 border border-base-300/50 p-8 shadow-md">
+                            <div className="w-12 h-12 bg-info/15 rounded-xl flex items-center justify-center mb-6 text-info">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                        d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-bold text-base-content mb-2">Lightning Fast</h3>
+                            <p className="text-base-content/70 text-sm">Powered by Vite and CodeIgniter 4, Jengo is optimized for the best developer experience.</p>
+                        </div>
+
+                        <div className="card bg-base-100 border border-base-300/50 p-8 shadow-md">
+                            <div className="w-12 h-12 bg-secondary/15 rounded-xl flex items-center justify-center mb-6 text-secondary">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-bold text-base-content mb-2">Security Ready</h3>
+                            <p className="text-base-content/70 text-sm">Easily configure authentication and authorization using Shield when your project grows.</p>
+                        </div>
+
+                        <div className="card bg-base-100 border border-base-300/50 p-8 shadow-md">
+                            <div className="w-12 h-12 bg-success/15 rounded-xl flex items-center justify-center mb-6 text-success">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                                        d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-bold text-base-content mb-2">Modern Stack</h3>
+                            <p className="text-base-content/70 text-sm">Leverage Inertia.js and React to build reactive SPAs without the complexity of an API.</p>
+                        </div>
+                    </div>
+                </main>
+
+                <footer className="relative z-10 py-12 text-center text-base-content/50 text-sm">
+                    &copy; {new Date().getFullYear()} JengoPHP. All rights reserved.
+                </footer>
+            </div>
+        </>
+    );
+}

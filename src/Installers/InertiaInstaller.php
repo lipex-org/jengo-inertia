@@ -72,13 +72,16 @@ class InertiaInstaller extends AbstractInstaller
         }
 
         // Publish Client Stubs
+        $hasAuth = $this->wantsAuth();
+        $stubType = $hasAuth ? 'WithAuth' : 'Default';
+
         $sourceStubDir = match ($this->framework) {
-            'vue' => "{$this->stubsDir}/Client/Vue",
-            'react' => "{$this->stubsDir}/Client/React",
-            'svelte' => "{$this->stubsDir}/Client/Svelte",
+            'vue' => "{$this->stubsDir}/Client/Vue/{$stubType}",
+            'react' => "{$this->stubsDir}/Client/React/{$stubType}",
+            'svelte' => "{$this->stubsDir}/Client/Svelte/{$stubType}",
         };
 
-        CLI::write("Publishing client stubs to {$this->clientDir}", 'yellow');
+        CLI::write("Publishing client stubs ({$stubType}) to {$this->clientDir}", 'yellow');
 
         $this->publish($sourceStubDir, $this->clientDir);
 
@@ -93,7 +96,6 @@ class InertiaInstaller extends AbstractInstaller
         // Update Filters
         $this->publishFilters();
         $this->updateFiltersConfig();
-        $this->publishCSSFile();
 
         // Install Dependencies
         if ($canInstallDependencies && $pm) {
@@ -237,61 +239,67 @@ class InertiaInstaller extends AbstractInstaller
         CLI::write("Inertia filter published.", 'green');
     }
 
-    private function publishCSSFile(): void
-    {
-        $url = str($this->clientDir);
-        if ($url->endsWith('js')) {
-            $url = arr($url->explode('/'))->unsetLast()->implode('/')
-                |> (fn($s) => str($s)->append('/css'));
-        }
 
-        $this->publish("{$this->stubsDir}/CSS", $url->toString());
-        CLI::write("CSS file published.", 'green');
-    }
-
-    private function updateFiltersConfig(): void
+    protected function updateFiltersConfig(): void
     {
-        $configFile = APPPATH . 'Config/Filters.php';
-        if (!file_exists($configFile)) {
+        $path = APPPATH . 'Config/Filters.php';
+
+        if (!file_exists($path)) {
             return;
         }
 
-        $content = file_get_contents($configFile);
+        $content = file_get_contents($path);
 
-        // Add Alias
-        if (!str_contains($content, "'inertia' => \App\Filters\Inertia::class")) {
-            $content = preg_replace(
-                "/(public array \$aliases = \[)/",
-                "$1\n        'inertia' => \App\Filters\Inertia::class,",
-                $content
-            );
+        // 1. Add the alias to the $aliases array if it doesn't exist
+        if (!str_contains($content, "'inertia' => \\App\\Filters\\Inertia::class")) {
+            // Find the public $aliases = [ line
+            $aliasPattern = '/(public\s+array\s+\$aliases\s*=\s*\[)/';
+            $aliasReplacement = "$1\n        'inertia' => \\App\\Filters\\Inertia::class,";
+            $content = preg_replace($aliasPattern, $aliasReplacement, $content);
         }
 
-        // Add to Global Before
-        if (!str_contains($content, "'inertia'") || !preg_match("/public array \$globals = \[.*?before' => \[.*?'inertia'/s", $content)) {
-            // This is a bit tricky due to nested arrays. 
-            // We look for 'globals' array, then its 'before' section.
-            $content = preg_replace(
-                "/(public array \$globals = \[.*?'before' => \[)/s",
-                "$1\n            'inertia',",
-                $content,
-                1
-            );
+        // 2. Add 'inertia' to the globals -> before array
+        // Looks for 'before' => [ and ensures 'inertia' isn't already added
+        if (preg_match('/\'before\'\s*=>\s*\[([^\]]*)/s', $content, $matches)) {
+            if (!str_contains($matches[1], "'inertia'")) {
+                $content = preg_replace(
+                    '/(\'before\'\s*=>\s*\[)/',
+                    "$1\n            'inertia',",
+                    $content
+                );
+            }
         }
 
-        $this->writeFile($configFile, $content);
-        CLI::write("Filters config updated.", 'green');
+        // 3. Add 'inertia' to the globals -> after array
+        // Looks for 'after' => [ and ensures 'inertia' isn't already added
+        if (preg_match('/\'after\'\s*=>\s*\[([^\]]*)/s', $content, $matches)) {
+            if (!str_contains($matches[1], "'inertia'")) {
+                $content = preg_replace(
+                    '/(\'after\'\s*=>\s*\[)/',
+                    "$1\n            'inertia',",
+                    $content
+                );
+            }
+        }
+
+        // Save the updated configuration back to the file
+        file_put_contents($path, $content);
     }
 
-    private function resolveClientDirectory(): void
+    private function wantsAuth(): bool
     {
-        $userInputDir = trim($this->whereToPlaceClientFiles(), '/');
+        $auth = CLI::getOption('auth');
+        if ($auth !== null) {
+            return in_array($auth, ['y', 'yes', 'true', '1', true], true);
+        }
 
-        $dir = trim(
-            $userInputDir === '.' ? 'Client' : "{$userInputDir}/Client",
-            '/'
-        );
+        // If not specified via CLI, check if Shield is installed
+        $shieldExists = class_exists('CodeIgniter\Shield\Auth') || file_exists(APPPATH . 'Config/Auth.php');
 
-        $this->clientDir = $dir === 'Client' ? strtolower($dir) : $dir;
+        // Use Shield existence as default choice
+        $defaultAnswer = $shieldExists ? ['y', 'n'] : ['n', 'y'];
+
+        return CLI::prompt('Do you want to include authentication scaffolding (Shield)?', $defaultAnswer, 'in_list[y,n]') === 'y';
     }
 }
+
