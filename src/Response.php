@@ -246,7 +246,7 @@ class Response implements ResponsableInterface
             return \response()->setJSON($page, true)->setHeader('Vary', 'X-Inertia')->setHeader('X-Inertia', 'true');
         }
 
-        $view = new View(new ConfigView(), '');
+        $view = new View(new ConfigView());
         $view->setData($this->viewData + ['page' => $page], 'raw');
 
         return $view;
