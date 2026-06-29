@@ -246,7 +246,7 @@ class Response implements ResponsableInterface
             return \response()->setJSON($page, true)->setHeader('Vary', 'X-Inertia')->setHeader('X-Inertia', 'true');
         }
 
-        $view = new View(new ConfigView());
+        $view = new View(new ConfigView(), '');
         $view->setData($this->viewData + ['page' => $page], 'raw');
 
         return $view;
@@ -259,7 +259,7 @@ class Response implements ResponsableInterface
         if ($response instanceof View) {
             /** @var Config\Inertia */
             $config = \config('Inertia');
-            return \response()->setBody($response->render($config->rootView))->setHeader('Content-Type', 'text/html');
+            return \response()->setBody(view($config->rootView, $response->getData()))->setHeader('Content-Type', 'text/html');
         }
 
         return $response;
