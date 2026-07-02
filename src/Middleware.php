@@ -54,6 +54,10 @@ class Middleware implements FilterInterface
      */
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
+        // clear all flashData
+        $flashKeys = array_keys(session()->getFlashdata());
+        session()->unmarkFlashdata($flashKeys);
+
         $response->setHeader('Vary', 'X-Inertia');
 
         if ($request->hasHeader('Precognition')) {

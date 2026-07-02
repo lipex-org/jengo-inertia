@@ -85,16 +85,16 @@
         },
         {
             "name": "jengo/base",
-            "version": "v1.1.30",
+            "version": "v1.1.32",
             "source": {
                 "type": "git",
                 "url": "https://github.com/lipex-org/jengo-base.git",
-                "reference": "d3d0a8c3d879a2279ba11eba147744808da270a2"
+                "reference": "c18493920f5c484350e8b21b03cd10482df4e6ef"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/lipex-org/jengo-base/zipball/d3d0a8c3d879a2279ba11eba147744808da270a2",
-                "reference": "d3d0a8c3d879a2279ba11eba147744808da270a2",
+                "url": "https://api.github.com/repos/lipex-org/jengo-base/zipball/c18493920f5c484350e8b21b03cd10482df4e6ef",
+                "reference": "c18493920f5c484350e8b21b03cd10482df4e6ef",
                 "shasum": ""
             },
             "require": {
@@ -128,9 +128,9 @@
             "description": "Modern web development library for CodeIgniter 4 with Vite, modules, unified setups, and automated CLI installer.",
             "support": {
                 "issues": "https://github.com/lipex-org/jengo-base/issues",
-                "source": "https://github.com/lipex-org/jengo-base/tree/v1.1.30"
+                "source": "https://github.com/lipex-org/jengo-base/tree/v1.1.32"
             },
-            "time": "2026-06-29T06:15:05+00:00"
+            "time": "2026-06-29T12:01:07+00:00"
         },
         {
             "name": "laminas/laminas-escaper",
