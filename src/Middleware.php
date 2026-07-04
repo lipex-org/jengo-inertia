@@ -54,9 +54,10 @@ class Middleware implements FilterInterface
      */
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
-        // clear all flashData
-        $flashKeys = array_keys(session()->getFlashdata());
-        session()->unmarkFlashdata($flashKeys);
+        // clear all flashData, ignoring redirects
+        if ($response->getStatusCode() < 300 && $response->getStatusCode() >= 400) {
+            session()->unmarkFlashdata(session()->getFlashKeys());
+        }
 
         $response->setHeader('Vary', 'X-Inertia');
 
