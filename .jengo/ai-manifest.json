@@ -1,0 +1,38 @@
+{
+  "name": "jengo/inertia",
+  "description": "Inertia.js server-side adapter for Jengo CodeIgniter 4 applications, enabling modern SPA frontend development.",
+  "helpers": [
+    {
+      "name": "inertia",
+      "signature": "inertia(string $component, array $props = []): ResponseInterface",
+      "description": "Render an Inertia component."
+    }
+  ],
+  "facades": [
+    {
+      "class": "Jengo\\Inertia\\Inertia",
+      "description": "Inertia facade to control state sharing, SSR, versioning, and redirects.",
+      "methods": {
+        "render": "render(string $component, array $props = [], array $viewData = []): ResponseInterface (Render Inertia component)",
+        "share": "share(string|array $key, $value = null): void (Share data with all Inertia components)",
+        "version": "version(Closure|string|null $version): void (Configure client asset version)",
+        "location": "location(Request|string $url): ResponseInterface (Trigger external redirect)",
+        "lazy": "lazy(Closure $callback): Lazy (Configure lazy-evaluable prop)",
+        "defer": "defer(Closure $callback, string $group = 'default'): Defer",
+        "once": "once(Closure $callback): Once",
+        "merge": "merge(mixed $value): Mergeable",
+        "always": "always(mixed $value): Always"
+      }
+    }
+  ],
+  "middleware": [
+    {
+      "class": "Jengo\\Inertia\\Middleware",
+      "description": "CodeIgniter 4 Filter/Middleware that auto-shares validation errors and flash session data, handles CSRF Vary headers, and client version reloads."
+    }
+  ],
+  "usage": {
+    "render": "return inertia('Dashboard/Index', ['users' => $users]);",
+    "share": "Inertia::share('auth.user', $user);"
+  }
+}
