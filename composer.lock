@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "codeigniter4/framework",
-            "version": "v4.7.3",
+            "version": "v4.7.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/codeigniter4/framework.git",
-                "reference": "ab9bf33caa3ccc25b1a4652234d7d0eb1d1937de"
+                "reference": "67ead895b7491703e5e5bc17436778806192008f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/codeigniter4/framework/zipball/ab9bf33caa3ccc25b1a4652234d7d0eb1d1937de",
-                "reference": "ab9bf33caa3ccc25b1a4652234d7d0eb1d1937de",
+                "url": "https://api.github.com/repos/codeigniter4/framework/zipball/67ead895b7491703e5e5bc17436778806192008f",
+                "reference": "67ead895b7491703e5e5bc17436778806192008f",
                 "shasum": ""
             },
             "require": {
@@ -81,24 +81,25 @@
                 "slack": "https://codeigniterchat.slack.com",
                 "source": "https://github.com/codeigniter4/CodeIgniter4"
             },
-            "time": "2026-05-22T11:21:33+00:00"
+            "time": "2026-07-07T09:23:35+00:00"
         },
         {
             "name": "jengo/base",
-            "version": "v1.1.32",
+            "version": "v1.1.33",
             "source": {
                 "type": "git",
                 "url": "https://github.com/lipex-org/jengo-base.git",
-                "reference": "c18493920f5c484350e8b21b03cd10482df4e6ef"
+                "reference": "d6a4fc1252df62d507feaf78cdecd16de353be1a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/lipex-org/jengo-base/zipball/c18493920f5c484350e8b21b03cd10482df4e6ef",
-                "reference": "c18493920f5c484350e8b21b03cd10482df4e6ef",
+                "url": "https://api.github.com/repos/lipex-org/jengo-base/zipball/d6a4fc1252df62d507feaf78cdecd16de353be1a",
+                "reference": "d6a4fc1252df62d507feaf78cdecd16de353be1a",
                 "shasum": ""
             },
             "require": {
-                "codeigniter4/framework": "^4.7"
+                "codeigniter4/framework": "^4.7",
+                "sqids/sqids": "^0.5.0"
             },
             "require-dev": {
                 "fakerphp/faker": "^1.24",
@@ -128,9 +129,9 @@
             "description": "Modern web development library for CodeIgniter 4 with Vite, modules, unified setups, and automated CLI installer.",
             "support": {
                 "issues": "https://github.com/lipex-org/jengo-base/issues",
-                "source": "https://github.com/lipex-org/jengo-base/tree/v1.1.32"
+                "source": "https://github.com/lipex-org/jengo-base/tree/v1.1.33"
             },
-            "time": "2026-06-29T12:01:07+00:00"
+            "time": "2026-07-14T10:08:50+00:00"
         },
         {
             "name": "laminas/laminas-escaper",
@@ -242,6 +243,61 @@
                 "source": "https://github.com/php-fig/log/tree/3.0.2"
             },
             "time": "2024-09-11T13:17:53+00:00"
+        },
+        {
+            "name": "sqids/sqids",
+            "version": "0.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/sqids/sqids-php.git",
+                "reference": "d594b87134f581578422caca005bc7ec99f958b2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/sqids/sqids-php/zipball/d594b87134f581578422caca005bc7ec99f958b2",
+                "reference": "d594b87134f581578422caca005bc7ec99f958b2",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^10.5|^11.2"
+            },
+            "suggest": {
+                "ext-bcmath": "Required to use BC Math arbitrary precision mathematics (*).",
+                "ext-gmp": "Required to use GNU multiple precision mathematics (*)."
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "1.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Sqids\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Generate short YouTube-looking IDs from numbers",
+            "homepage": "https://sqids.org/php",
+            "keywords": [
+                "decode",
+                "encode",
+                "generate",
+                "hashids",
+                "ids",
+                "sqids"
+            ],
+            "support": {
+                "issues": "https://github.com/sqids/sqids-php/issues",
+                "source": "https://github.com/sqids/sqids-php/tree/0.5.0"
+            },
+            "time": "2025-01-05T05:37:48+00:00"
         }
     ],
     "packages-dev": [
@@ -703,16 +759,16 @@
         },
         {
             "name": "amphp/pipeline",
-            "version": "v1.2.5",
+            "version": "v1.2.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/amphp/pipeline.git",
-                "reference": "92f121dde31cd1d89d5d0f9eba64ac40271b236e"
+                "reference": "10941bf38de5c585aa2407b2ec4265d806d4eef2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/amphp/pipeline/zipball/92f121dde31cd1d89d5d0f9eba64ac40271b236e",
-                "reference": "92f121dde31cd1d89d5d0f9eba64ac40271b236e",
+                "url": "https://api.github.com/repos/amphp/pipeline/zipball/10941bf38de5c585aa2407b2ec4265d806d4eef2",
+                "reference": "10941bf38de5c585aa2407b2ec4265d806d4eef2",
                 "shasum": ""
             },
             "require": {
@@ -758,7 +814,7 @@
             ],
             "support": {
                 "issues": "https://github.com/amphp/pipeline/issues",
-                "source": "https://github.com/amphp/pipeline/tree/v1.2.5"
+                "source": "https://github.com/amphp/pipeline/tree/v1.2.6"
             },
             "funding": [
                 {
@@ -766,7 +822,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-06-27T14:17:20+00:00"
+            "time": "2026-06-27T16:15:40+00:00"
         },
         {
             "name": "amphp/process",
@@ -2765,16 +2821,16 @@
         },
         {
             "name": "friendsofphp/php-cs-fixer",
-            "version": "v3.95.11",
+            "version": "v3.95.13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer.git",
-                "reference": "35f98e1293283397824d7f349ce5afb8747c3cd5"
+                "reference": "ea941114a002eb5e5876f190223deec1066c482c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHP-CS-Fixer/PHP-CS-Fixer/zipball/35f98e1293283397824d7f349ce5afb8747c3cd5",
-                "reference": "35f98e1293283397824d7f349ce5afb8747c3cd5",
+                "url": "https://api.github.com/repos/PHP-CS-Fixer/PHP-CS-Fixer/zipball/ea941114a002eb5e5876f190223deec1066c482c",
+                "reference": "ea941114a002eb5e5876f190223deec1066c482c",
                 "shasum": ""
             },
             "require": {
@@ -2814,7 +2870,7 @@
                 "php-coveralls/php-coveralls": "^2.9.1",
                 "php-cs-fixer/phpunit-constraint-isidenticalstring": "^1.8",
                 "php-cs-fixer/phpunit-constraint-xmlmatchesxsd": "^1.8",
-                "phpunit/phpunit": "^9.6.34 || ^10.5.63 || ^11.5.55",
+                "phpunit/phpunit": "^9.6.35 || ^10.5.64 || ^11.5.56",
                 "symfony/polyfill-php85": "^1.38",
                 "symfony/var-dumper": "^5.4.48 || ^6.4.36 || ^7.4.8 || ^8.1.0",
                 "symfony/yaml": "^5.4.53 || ^6.4.41 || ^7.4.13 || ^8.1.0"
@@ -2858,7 +2914,7 @@
             ],
             "support": {
                 "issues": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/issues",
-                "source": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/tree/v3.95.11"
+                "source": "https://github.com/PHP-CS-Fixer/PHP-CS-Fixer/tree/v3.95.13"
             },
             "funding": [
                 {
@@ -2866,7 +2922,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-06-25T14:17:04+00:00"
+            "time": "2026-07-10T09:23:21+00:00"
         },
         {
             "name": "icanhazstring/composer-unused",
@@ -4097,20 +4153,19 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v5.7.0",
+            "version": "v5.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "dca41cd15c2ac9d055ad70dbfd011130757d1f82"
+                "reference": "044a6a392ff8ad0d61f14370a5fbbd0a0107152f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/dca41cd15c2ac9d055ad70dbfd011130757d1f82",
-                "reference": "dca41cd15c2ac9d055ad70dbfd011130757d1f82",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/044a6a392ff8ad0d61f14370a5fbbd0a0107152f",
+                "reference": "044a6a392ff8ad0d61f14370a5fbbd0a0107152f",
                 "shasum": ""
             },
             "require": {
-                "ext-ctype": "*",
                 "ext-json": "*",
                 "ext-tokenizer": "*",
                 "php": ">=7.4"
@@ -4149,9 +4204,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
-                "source": "https://github.com/nikic/PHP-Parser/tree/v5.7.0"
+                "source": "https://github.com/nikic/PHP-Parser/tree/v5.8.0"
             },
-            "time": "2025-12-06T11:56:16+00:00"
+            "time": "2026-07-04T14:30:18+00:00"
         },
         {
             "name": "nunomaduro/collision",
@@ -4495,16 +4550,16 @@
         },
         {
             "name": "pestphp/pest",
-            "version": "v4.7.4",
+            "version": "v4.7.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/pestphp/pest.git",
-                "reference": "ee2e97e932d158faceeaa63a4dc17324b15152cb"
+                "reference": "5dc49a71d63602a9b98fed0f2017c4679ef9f8e0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pestphp/pest/zipball/ee2e97e932d158faceeaa63a4dc17324b15152cb",
-                "reference": "ee2e97e932d158faceeaa63a4dc17324b15152cb",
+                "url": "https://api.github.com/repos/pestphp/pest/zipball/5dc49a71d63602a9b98fed0f2017c4679ef9f8e0",
+                "reference": "5dc49a71d63602a9b98fed0f2017c4679ef9f8e0",
                 "shasum": ""
             },
             "require": {
@@ -4527,11 +4582,11 @@
                 "webmozart/assert": "<1.11.0"
             },
             "require-dev": {
-                "mrpunyapal/peststan": "^0.2.10",
+                "mrpunyapal/peststan": "^0.2.11",
                 "pestphp/pest-dev-tools": "^4.1.0",
                 "pestphp/pest-plugin-browser": "^4.3.1",
                 "pestphp/pest-plugin-type-coverage": "^4.0.4",
-                "psy/psysh": "^0.12.23"
+                "psy/psysh": "^0.12.24"
             },
             "bin": [
                 "bin/pest"
@@ -4598,7 +4653,7 @@
             ],
             "support": {
                 "issues": "https://github.com/pestphp/pest/issues",
-                "source": "https://github.com/pestphp/pest/tree/v4.7.4"
+                "source": "https://github.com/pestphp/pest/tree/v4.7.5"
             },
             "funding": [
                 {
@@ -4610,7 +4665,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-06-25T19:09:05+00:00"
+            "time": "2026-07-06T17:06:29+00:00"
         },
         {
             "name": "pestphp/pest-plugin",
@@ -5314,16 +5369,16 @@
         },
         {
             "name": "phpstan/phpdoc-parser",
-            "version": "2.3.2",
+            "version": "2.3.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpdoc-parser.git",
-                "reference": "a004701b11273a26cd7955a61d67a7f1e525a45a"
+                "reference": "fb19eedd2bb67ff8cf7a5502ad329e701d6398a3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/a004701b11273a26cd7955a61d67a7f1e525a45a",
-                "reference": "a004701b11273a26cd7955a61d67a7f1e525a45a",
+                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/fb19eedd2bb67ff8cf7a5502ad329e701d6398a3",
+                "reference": "fb19eedd2bb67ff8cf7a5502ad329e701d6398a3",
                 "shasum": ""
             },
             "require": {
@@ -5355,9 +5410,9 @@
             "description": "PHPDoc parser with support for nullable, intersection and generic types",
             "support": {
                 "issues": "https://github.com/phpstan/phpdoc-parser/issues",
-                "source": "https://github.com/phpstan/phpdoc-parser/tree/2.3.2"
+                "source": "https://github.com/phpstan/phpdoc-parser/tree/2.3.3"
             },
-            "time": "2026-01-25T14:56:51+00:00"
+            "time": "2026-07-08T07:01:06+00:00"
         },
         {
             "name": "phpstan/phpstan",
