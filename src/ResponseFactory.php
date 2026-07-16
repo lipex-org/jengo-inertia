@@ -190,7 +190,7 @@ class ResponseFactory
      * @param mixed $value
      * @return ResponseFactory
      */
-    public function flash(array|string $data, ?string $value = null): self
+    public function flash(array|string $data, $value = null): self
     {
         session()->setFlashdata($data, $value);
         return $this;
