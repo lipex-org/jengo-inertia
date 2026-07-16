@@ -34,6 +34,7 @@ use Jengo\Inertia\Config\Services;
  * @method static Props\Mergeable                    prepend(mixed $value)
  * @method static Props\Mergeable                    deepMerge(mixed $value)
  * @method static Props\Always                       always(mixed $value)
+ * @method static ResponseFactory                    flash(array|string $data, ?string $value = null)
  *
  * @see ResponseFactory
  */

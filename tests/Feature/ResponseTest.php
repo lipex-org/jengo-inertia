@@ -42,7 +42,8 @@ describe('Inertia Response Tests', function () {
             expect($page['props']['user']['name'])->toEqual('Jonathon');
             expect(str_replace('index.php/', '', $page['url']))->toEqual('/user/123');
 
-            expect($view->renderString(Directive::compile($page)))->toEqual('<div id="app" data-page="{&quot;component&quot;:&quot;User\\/Edit&quot;,&quot;props&quot;:{&quot;user&quot;:{&quot;name&quot;:&quot;Jonathon&quot;}},&quot;url&quot;:&quot;\\/index.php\\/user\\/123&quot;,&quot;version&quot;:&quot;123&quot;}"></div>');
+            $expectedHtml = '<script type="application/json" data-page="app">' . json_encode($page, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) . '</script><div id="app"></div>';
+            expect($view->renderString(Directive::compile($page)))->toEqual($expectedHtml);
         }
         );
 

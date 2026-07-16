@@ -20,4 +20,5 @@ class Inertia extends BaseConfig
     public string|null $version = null;
     public bool $isSsrEnabled = false;
     public string $ssrUrl = 'http://127.0.0.1:13714';
+    public string $filterAlias = 'inertia';
 }

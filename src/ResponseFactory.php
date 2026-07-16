@@ -185,6 +185,18 @@ class ResponseFactory
     }
 
     /**
+     * Set flashData
+     * @param mixed[]|string $data
+     * @param mixed $value
+     * @return ResponseFactory
+     */
+    public function flash(array|string $data, ?string $value = null): self
+    {
+        session()->setFlashdata($data, $value);
+        return $this;
+    }
+
+    /**
      * @param array{component: string, version: string, url: string, props: array<string, mixed>} $page
      *
      * @psalm-api
