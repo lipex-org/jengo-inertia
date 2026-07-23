@@ -197,6 +197,18 @@ class ResponseFactory
     }
 
     /**
+     * Disable SSR for tests.
+     */
+    public function disableSsr(mixed $disable = true): void
+    {
+        $resolved = is_callable($disable) ? $disable() : $disable;
+        $config = config('Inertia');
+        if ($config) {
+            $config->isSsrEnabled = !$resolved;
+        }
+    }
+
+    /**
      * @param array{component: string, version: string, url: string, props: array<string, mixed>} $page
      *
      * @psalm-api

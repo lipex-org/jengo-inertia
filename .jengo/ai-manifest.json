@@ -21,7 +21,8 @@
         "defer": "defer(Closure $callback, string $group = 'default'): Defer",
         "once": "once(Closure $callback): Once",
         "merge": "merge(mixed $value): Mergeable",
-        "always": "always(mixed $value): Always"
+        "always": "always(mixed $value): Always",
+        "disableSsr": "disableSsr(mixed $disable = true): void (Disable SSR rendering for test environments)"
       }
     }
   ],
@@ -31,8 +32,37 @@
       "description": "CodeIgniter 4 Filter/Middleware that auto-shares validation errors and flash session data, handles CSRF Vary headers, and client version reloads."
     }
   ],
+  "testing": [
+    {
+      "trait": "Jengo\\Inertia\\Testing\\InertiaAssertions",
+      "description": "Exposes HTTP request testing wrappers (get, post, put, patch, delete) that return Jengo's custom TestResponse with fluent assertions.",
+      "methods": {
+        "assertInertia": "assertInertia(callable $callback): self (Fluent assertions callback)",
+        "assertInertiaFlash": "assertInertiaFlash(string $key, mixed $expected = null): self (Assert redirect flash data)",
+        "assertInertiaFlashMissing": "assertInertiaFlashMissing(string $key): self (Assert redirect flash data does not exist)"
+      }
+    },
+    {
+      "class": "Jengo\\Inertia\\Testing\\AssertableInertia",
+      "description": "Fluent Assert class passed to assertInertia callback to verify component, props, reloads, and deferred props.",
+      "methods": {
+        "component": "component(string $value, bool $shouldMatchExactly = true): self (Assert Inertia component name)",
+        "has": "has(string $key, mixed ...$args): self (Assert prop existence, array count, or nested scoping)",
+        "where": "where(string $key, mixed $expected): self (Assert prop equals expected value)",
+        "missing": "missing(string $key): self (Assert prop does not exist)",
+        "count": "count(string $key, int $expectedCount): self (Assert prop array count)",
+        "etc": "etc(): self (Ignore un-asserted properties in current scope)",
+        "reloadOnly": "reloadOnly(string|array $keys, callable $callback): self (Verify partial reload)",
+        "reloadExcept": "reloadExcept(string|array $keys, callable $callback): self (Verify partial reload excluding keys)",
+        "loadDeferredProps": "loadDeferredProps(mixed $groupsOrCallback, ?callable $callback = null): self (Verify deferred props loading)",
+        "hasFlash": "hasFlash(string $key, mixed $expected = null): self (Assert rendered page session flash)",
+        "missingFlash": "missingFlash(string $key): self (Assert page flash does not exist)"
+      }
+    }
+  ],
   "usage": {
     "render": "return inertia('Dashboard/Index', ['users' => $users]);",
-    "share": "Inertia::share('auth.user', $user);"
+    "share": "Inertia::share('auth.user', $user);",
+    "testing": "$this->get('/dashboard')->assertInertia(fn (Assert $page) => $page->component('Dashboard')->has('users', 3)->etc());"
   }
 }

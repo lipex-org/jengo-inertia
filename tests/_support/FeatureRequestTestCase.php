@@ -12,6 +12,7 @@
 namespace Tests\Support;
 
 use CodeIgniter\Test\FeatureTestTrait;
+use Jengo\Inertia\Testing\InertiaAssertions;
 use Tests\TestCase;
 
 /**
@@ -19,5 +20,17 @@ use Tests\TestCase;
  */
 class FeatureRequestTestCase extends TestCase
 {
-    use FeatureTestTrait;
+    use FeatureTestTrait, InertiaAssertions {
+        FeatureTestTrait::get as parentGet;
+        FeatureTestTrait::post as parentPost;
+        FeatureTestTrait::put as parentPut;
+        FeatureTestTrait::patch as parentPatch;
+        FeatureTestTrait::delete as parentDelete;
+
+        InertiaAssertions::get insteadof FeatureTestTrait;
+        InertiaAssertions::post insteadof FeatureTestTrait;
+        InertiaAssertions::put insteadof FeatureTestTrait;
+        InertiaAssertions::patch insteadof FeatureTestTrait;
+        InertiaAssertions::delete insteadof FeatureTestTrait;
+    }
 }
