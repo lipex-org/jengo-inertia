@@ -2,11 +2,14 @@
 
 namespace Jengo\Inertia\Props;
 
-use Closure;
+use Inertia\Protocol\Props\Once as ProtocolOnce;
 
-class Once
+class Once extends ProtocolOnce
 {
     public function __construct(
-        public Closure $callback
-    ) {}
+        mixed $callback,
+        ?int $expiresAt = null
+    ) {
+        parent::__construct($callback, $expiresAt);
+    }
 }

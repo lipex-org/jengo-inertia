@@ -305,7 +305,7 @@ final class AssertableInertia
         }
 
         $allKeys = array_keys($this->props);
-        $diff = array_diff($allKeys, $this->interactedKeys);
+        $diff = array_diff($allKeys, array_merge($this->interactedKeys, ['errors']));
 
         if (!empty($diff)) {
             PHPUnit::fail(

@@ -18,7 +18,9 @@ use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\Validation\ValidationInterface;
+use Jengo\Inertia\Config\Inertia;
 use Jengo\Inertia\Extras\Http;
+use Jengo\Inertia\Props\Always;
 
 /**
  * @psalm-api
@@ -32,8 +34,8 @@ class Middleware implements FilterInterface
     public function withShare(RequestInterface $request): array
     {
         return [
-            'errors' => fn() => $this->resolveValidationErrors($request),
-            'flash' => static fn() => session()->getFlashdata(),
+            'errors' => new Always($this->resolveValidationErrors($request)),
+            'flash' => new Always(session()->getFlashdata()),
         ];
     }
 

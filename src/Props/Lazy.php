@@ -2,11 +2,13 @@
 
 namespace Jengo\Inertia\Props;
 
-use Closure;
+use Inertia\Protocol\Props\Lazy as ProtocolLazy;
 
-class Lazy
+class Lazy extends ProtocolLazy
 {
     public function __construct(
-        public Closure $callback
-    ) {}
+        mixed $callback
+    ) {
+        parent::__construct($callback);
+    }
 }

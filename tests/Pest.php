@@ -46,9 +46,11 @@ expect()->extend('toBeOne', fn () => $this->toBe(1));
 |
 */
 
-function dd($var)
-{
-    fwrite(STDOUT, var_export($var, true));
+if (!function_exists('dd')) {
+    function dd($var)
+    {
+        fwrite(STDOUT, var_export($var, true));
 
-    exit(1);
+        exit(1);
+    }
 }

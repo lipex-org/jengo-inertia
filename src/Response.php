@@ -4,6 +4,7 @@
  * This file is part of Inertia.js Codeigniter 4.
  *
  * (c) 2023 Fab IT Hub <hello@fabithub.com>
+ * (c) 2026 JengoPHP <hello@jengophp.com>
  *
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
@@ -16,8 +17,8 @@ use CodeIgniter\HTTP\ResponsableInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\View\View;
 use Config\View as ConfigView;
-use Jengo\Inertia\Extras\Arr;
-use Jengo\Inertia\Extras\Http;
+use Inertia\Protocol\ProtocolEngine;
+use Jengo\Base\Inertia\CI4RequestAdapter;
 
 class Response implements ResponsableInterface
 {
@@ -81,30 +82,35 @@ class Response implements ResponsableInterface
     public function withSharedKeys(array $keys): static
     {
         $this->sharedKeys = $keys;
+
         return $this;
     }
 
     public function scrollProps(array $props): static
     {
         $this->scrollProps = $props;
+
         return $this;
     }
 
     public function encryptHistory(bool $encrypt = true): static
     {
         $this->encryptHistory = $encrypt;
+
         return $this;
     }
 
     public function clearHistory(bool $clear = true): static
     {
         $this->clearHistory = $clear;
+
         return $this;
     }
 
     public function preserveFragment(bool $preserve = true): static
     {
         $this->preserveFragment = $preserve;
+
         return $this;
     }
 
@@ -113,8 +119,9 @@ class Response implements ResponsableInterface
         $response = $this->toResponse();
 
         if ($response instanceof View) {
-            /** @var Config\Inertia */
+            /** @var Config\Inertia $config */
             $config = \config('Inertia');
+
             return $response->render($config->rootView);
         }
 
@@ -124,126 +131,32 @@ class Response implements ResponsableInterface
     public function toResponse(?RequestInterface $request = null): View|ResponseInterface
     {
         $request ??= request();
+        $adapter = new CI4RequestAdapter($request);
 
-        $partialData = Http::getPartialData($request);
-        $partialExcept = Http::getPartialExcept($request);
-        $isPartial = Http::isPartialReload($request) && Http::getHeaderValue('X-Inertia-Partial-Component', '', $request) === $this->component;
+        $engine = new ProtocolEngine();
+        $decision = $engine->evaluate(
+            request: $adapter,
+            component: $this->component,
+            props: $this->props,
+            version: $this->version,
+            options: [
+                'sharedKeys'       => $this->sharedKeys,
+                'scrollProps'      => $this->scrollProps,
+                'encryptHistory'   => $this->encryptHistory,
+                'clearHistory'     => $this->clearHistory,
+                'preserveFragment' => $this->preserveFragment,
+            ]
+        );
 
-        $exceptOnce = Http::getExceptOnceProps($request);
+        $page = $decision->pageObject->toArray();
 
-        $resolvedProps = [];
-        $deferredProps = [];
-        $rescuedProps = [];
-        $mergeProps = [];
-        $prependProps = [];
-        $deepMergeProps = [];
-        $matchPropsOn = [];
-        $onceProps = [];
-
-        foreach ($this->props as $key => $value) {
-            // Handle "Always" props
-            if ($value instanceof Props\Always) {
-                $resolvedProps[$key] = Arr::value($value->value);
-                continue;
+        if ($decision->isJson()) {
+            $res = \response()->setJSON($page, true);
+            foreach ($decision->headers as $name => $value) {
+                $res->setHeader($name, $value);
             }
 
-            // Partial reload logic
-            if ($isPartial) {
-                if ($partialData && !in_array($key, $partialData, true)) {
-                    continue;
-                }
-                if ($partialExcept && in_array($key, $partialExcept, true)) {
-                    continue;
-                }
-            } elseif ($value instanceof Props\Lazy) {
-                // Lazy props are only included in partial reloads
-                continue;
-            }
-
-            // Handle "Once" props
-            if ($value instanceof Props\Once) {
-                $onceProps[$key] = ['prop' => $key, 'expiresAt' => null];
-                if (in_array($key, $exceptOnce, true)) {
-                    continue;
-                }
-                $resolvedProps[$key] = Arr::value($value->callback);
-                continue;
-            }
-
-            // Handle "Defer" props
-            if ($value instanceof Props\Defer) {
-                if (!$isPartial || !in_array($key, $partialData, true)) {
-                    $deferredProps[$value->group][] = $key;
-                    continue;
-                }
-                try {
-                    $resolvedProps[$key] = Arr::value($value->callback);
-                } catch (\Throwable $e) {
-                    $rescuedProps[] = $key;
-                }
-                continue;
-            }
-
-            // Handle "Mergeable" props
-            if ($value instanceof Props\Mergeable) {
-                if ($value->deep) {
-                    $deepMergeProps[] = $key;
-                } elseif ($value->prepend) {
-                    $prependProps[] = $key;
-                } else {
-                    $mergeProps[] = $key;
-                }
-
-                if ($value->matchOn) {
-                    $matchPropsOn[] = "{$key}.{$value->matchOn}";
-                }
-
-                $resolvedProps[$key] = Arr::value($value->value);
-                continue;
-            }
-
-            // Regular props
-            $resolvedProps[$key] = Arr::value($value);
-        }
-
-        $fragment = $request->getUri()->getFragment();
-        $query = $request->getUri()->getQuery();
-        $url = $request->getUri()->getPath() . ($fragment ? "#{$fragment}" : "") . ($query ? "?{$query}" : "");
-
-        $page = [
-            'component' => $this->component,
-            'props' => $resolvedProps,
-            'url' => $url,
-            'version' => $this->version,
-        ];
-
-        if ($this->encryptHistory)
-            $page['encryptHistory'] = true;
-        if ($this->clearHistory)
-            $page['clearHistory'] = true;
-        if ($this->preserveFragment)
-            $page['preserveFragment'] = true;
-        if ($deferredProps)
-            $page['deferredProps'] = $deferredProps;
-        if ($rescuedProps)
-            $page['rescuedProps'] = $rescuedProps;
-        if ($mergeProps)
-            $page['mergeProps'] = $mergeProps;
-        if ($prependProps)
-            $page['prependProps'] = $prependProps;
-        if ($deepMergeProps)
-            $page['deepMergeProps'] = $deepMergeProps;
-        if ($matchPropsOn)
-            $page['matchPropsOn'] = $matchPropsOn;
-        if ($onceProps)
-            $page['onceProps'] = $onceProps;
-        if ($this->sharedKeys)
-            $page['sharedProps'] = $this->sharedKeys;
-        if ($this->scrollProps)
-            $page['scrollProps'] = $this->scrollProps;
-
-        if (Http::isInertiaRequest($request)) {
-            return \response()->setJSON($page, true)->setHeader('Vary', 'X-Inertia')->setHeader('X-Inertia', 'true');
+            return $res;
         }
 
         $view = new View(new ConfigView(), '');
@@ -257,8 +170,9 @@ class Response implements ResponsableInterface
         $response = $this->toResponse();
 
         if ($response instanceof View) {
-            /** @var Config\Inertia */
+            /** @var Config\Inertia $config */
             $config = \config('Inertia');
+
             return \response()->setBody(view($config->rootView, $response->getData()))->setHeader('Content-Type', 'text/html');
         }
 

@@ -133,3 +133,5 @@ nb-configuration.xml
 
 # Deptrac
 .deptrac.cache
+
+composer.lock

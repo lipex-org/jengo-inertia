@@ -2,12 +2,15 @@
 
 namespace Jengo\Inertia\Props;
 
-use Closure;
+use Inertia\Protocol\Props\Defer as ProtocolDefer;
 
-class Defer
+class Defer extends ProtocolDefer
 {
     public function __construct(
-        public string $group = 'default',
-        public ?Closure $callback = null,
-    ) {}
+        string $group = 'default',
+        mixed $callback = null,
+        bool $rescue = false
+    ) {
+        parent::__construct($callback, $group, $rescue);
+    }
 }
