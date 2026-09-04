@@ -18,10 +18,7 @@ use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\Validation\ValidationInterface;
-use Jengo\Inertia\Config\Inertia;
 use Jengo\Inertia\Extras\Http;
-use Jengo\Inertia\Props\Always;
-
 /**
  * @psalm-api
  */
@@ -34,8 +31,8 @@ class Middleware implements FilterInterface
     public function withShare(RequestInterface $request): array
     {
         return [
-            'errors' => new Always($this->resolveValidationErrors($request)),
-            'flash' => new Always(session()->getFlashdata()),
+            "errors" => Inertia::always($this->resolveValidationErrors($request)),
+            "flash" => Inertia::always(session()->getFlashdata()),
         ];
     }
 
@@ -54,42 +51,56 @@ class Middleware implements FilterInterface
      *
      * @return mixed
      */
-    public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
-    {
+    public function after(
+        RequestInterface $request,
+        ResponseInterface $response,
+        $arguments = null,
+    ) {
         // clear all flashData, ignoring redirects
-        if ($response->getStatusCode() < 300 && $response->getStatusCode() >= 400) {
+        if (
+            $response->getStatusCode() < 300 ||
+            $response->getStatusCode() >= 400
+        ) {
             session()->unmarkFlashdata(session()->getFlashKeys());
         }
 
-        $response->setHeader('Vary', 'X-Inertia');
+        $response->setHeader("Vary", "X-Inertia");
 
-        if ($request->hasHeader('Precognition')) {
-            $response->setHeader('Vary', 'Precognition');
-            $response->setHeader('Precognition', 'true');
+        if ($request->hasHeader("Precognition")) {
+            $response->setHeader("Vary", "Precognition");
+            $response->setHeader("Precognition", "true");
         }
 
-        if (!$request->hasHeader('X-Inertia')) {
+        if (!$request->hasHeader("X-Inertia")) {
             return $response;
         }
 
-        if (request()->isCLI()) {
+        if (ENVIRONMENT !== 'testing' && request()->isCLI()) {
             return $response;
         }
 
         // Only check version in production to avoid full page reloads during development
-        if (ENVIRONMENT !== 'development' && request()->is('get')) {
-            if (Http::getHeaderValue('X-Inertia-Version') !== Inertia::getVersion()) {
+        if (ENVIRONMENT !== "development" && request()->is("get")) {
+            if (
+                Http::getHeaderValue("X-Inertia-Version") !==
+                Inertia::getVersion()
+            ) {
                 $response = $this->onVersionChange($request);
             }
         }
 
-        if ($response->getStatusCode() === $response::HTTP_OK && empty($response->getJSON())) {
+        if (
+            $response->getStatusCode() === $response::HTTP_OK &&
+            (empty($response->getBody()) || empty($response->getJSON()))
+        ) {
             $response = $this->onEmptyResponse();
         }
 
         if (
-            $response->getStatusCode() === $response::HTTP_FOUND
-            && (request()->is('put') || request()->is('patch') || request()->is('delete'))
+            $response->getStatusCode() === $response::HTTP_FOUND &&
+            (request()->is("put") ||
+                request()->is("patch") ||
+                request()->is("delete"))
         ) {
             $response->setStatusCode($response::HTTP_SEE_OTHER);
         }
@@ -102,8 +113,9 @@ class Middleware implements FilterInterface
         return \redirect()->back();
     }
 
-    private function onVersionChange(RequestInterface $request): RedirectResponse|ResponseInterface
-    {
+    private function onVersionChange(
+        RequestInterface $request,
+    ): RedirectResponse|ResponseInterface {
         \session()->regenerate(true);
 
         return Inertia::location($request->getUri());
@@ -115,19 +127,21 @@ class Middleware implements FilterInterface
      */
     private function resolveValidationErrors(RequestInterface $request): object
     {
-        service('session');
+        service("session");
 
         /** @var ValidationInterface */
-        $validation = service('validation');
+        $validation = service("validation");
 
-        $errors = session()->getFlashdata('errors') ?? $validation->getErrors();
+        $errors = session()->getFlashdata("errors") ?? $validation->getErrors();
 
         if (!$errors) {
             return (object) [];
         }
 
-        if ($request->hasHeader('x-inertia-error-bag')) {
-            return (object) [Http::getHeaderValue('x-inertia-error-bag') => $errors];
+        if ($request->hasHeader("x-inertia-error-bag")) {
+            return (object) [
+                Http::getHeaderValue("x-inertia-error-bag") => $errors,
+            ];
         }
 
         return (object) $errors;

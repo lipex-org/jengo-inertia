@@ -7,11 +7,16 @@ use Inertia\Protocol\Props\Mergeable as ProtocolMergeable;
 class Mergeable extends ProtocolMergeable
 {
     public function __construct(
-        public mixed $value,
-        public bool $deep = false,
-        public bool $prepend = false,
-        public ?string $matchOn = null,
+        mixed $value,
+        bool $deep = false,
+        bool $prepend = false,
+        ?string $matchOn = null,
     ) {
-        parent::__construct($value, $matchOn, $deep, $prepend);
+        parent::__construct(
+            value: $value,
+            prepend: $prepend,
+            deep: $deep,
+            matchOn: $matchOn
+        );
     }
 }

@@ -17,12 +17,14 @@ class Inertia extends Middleware
             'csrf_token' => csrf_token(),
             'csrf_hash' => csrf_hash(),
             'auth' => [
-                'user' => arr(auth()->user() ?? [])
-                    ->only([
-                        'id',
-                        'username',
-                        'email'
-                    ])->asNullWhenEmpty()
+                'user' => function_exists('auth')
+                    ? arr(auth()->user() ?? [])
+                        ->only([
+                            'id',
+                            'username',
+                            'email'
+                        ])->asNullWhenEmpty()
+                    : null
             ],
         ]);
     }

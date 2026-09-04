@@ -9,11 +9,21 @@
       "email": "ochiengian383@gmail.com"
     }
   ],
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../base"
+    },
+    {
+      "type": "path",
+      "url": "../../inertia-protocol"
+    }
+  ],
   "require": {
     "php": "^8.5",
     "codeigniter4/framework": "^4.7",
-    "jengo/base": "^1.1",
-    "gilads-otiannoh254/inertia-protocol": "^0.0"
+    "jengo/base": "*",
+    "gilads-otiannoh254/inertia-protocol": "*@dev"
   },
   "require-dev": {
     "codeigniter/coding-standard": "^1.7",

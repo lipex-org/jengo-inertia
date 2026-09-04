@@ -13,6 +13,7 @@
 namespace Jengo\Inertia\Config;
 
 use CodeIgniter\Config\BaseService;
+use Jengo\Inertia\Extras\Gateway;
 use Jengo\Inertia\ResponseFactory;
 use Jengo\Inertia\Ssr\HttpGateway;
 
@@ -27,7 +28,7 @@ class Services extends BaseService
         return new ResponseFactory();
     }
 
-    public static function httpGateway(bool $getShared = true): ?HttpGateway
+    public static function httpGateway(bool $getShared = true): ?Gateway
     {
         if ($getShared) {
             return static::getSharedInstance('httpGateway');

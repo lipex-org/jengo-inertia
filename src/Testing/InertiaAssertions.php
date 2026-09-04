@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Jengo\Inertia\Testing;
 
+use CodeIgniter\HTTP\ResponseInterface;
+use CodeIgniter\Test\TestResponse as CITestResponse;
 use PHPUnit\Framework\Assert as PHPUnit;
 
 trait InertiaAssertions
@@ -30,7 +32,15 @@ trait InertiaAssertions
      */
     protected function assertInertia(mixed $response, ?callable $callback = null): void
     {
-        $wrapped = $response instanceof TestResponse ? $response : new TestResponse($response, $this);
+        if ($response instanceof TestResponse) {
+            $wrapped = $response;
+        } elseif ($response instanceof CITestResponse) {
+            $wrapped = new TestResponse($response, $this);
+        } elseif ($response instanceof ResponseInterface) {
+            $wrapped = new TestResponse(new CITestResponse($response), $this);
+        } else {
+            $wrapped = new TestResponse($response, $this);
+        }
 
         if ($callback !== null) {
             $wrapped->assertInertia($callback);
