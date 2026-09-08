@@ -1,58 +1,40 @@
 # Jengo Inertia
 
-**Jengo Inertia** seamlessly integrates [Inertia.js](https://inertiajs.com/) with **CodeIgniter 4**, allowing you to build modern single-page apps using classic server-side routing and controllers.
+The official CodeIgniter 4 adapter for Inertia.js, bringing modern single-page app frontend workflows (React, Vue, Svelte) to classic server-side routing and controllers.
 
-## 🚀 Features
+Documentation: https://lipex-org.github.io/jengophp.com/packages/inertia
 
--   **Automatic Setup**: Comes with a dedicated installer to set up Vue, React, or Svelte.
--   **Vite Integration**: Powered by `jengo/base` and `@jengo/vite` for a modern build experience.
--   **Server-Side Routing**: Use standard CI4 routing and controllers.
+## Installation
 
-## 📦 Installation
+```bash
+composer require jengo/inertia
+php spark jengo:install vite
+php spark jengo:install inertia
+```
 
-1.  **Require the packages:**
+## Quick Start
 
-    ```bash
-    composer require jengo/base jengo/inertia
-    ```
+```php
+namespace App\Controllers;
 
-2.  **Run the Vite installer (Required first):**
+use Jengo\Inertia\Inertia;
 
-    ```bash
-    php spark jengo:install vite
-    ```
+class DashboardController extends BaseController
+{
+    public function index()
+    {
+        return Inertia::render('Dashboard', [
+            'totalUsers' => 150,
+            'recentActivity' => [...],
+        ]);
+    }
+}
+```
 
-    This sets up the necessary `package.json` and Vite configuration foundation.
+## Documentation
 
-3.  **Run the Inertia installer:**
+For full guides on Inertia v3 protocol features (lazy, deferred, and partial props), history encryption, and Vite configuration, visit https://lipex-org.github.io/jengophp.com/packages/inertia.
 
-    ```bash
-    php spark jengo:install inertia
-    ```
+## License
 
-    The installer will guide you through:
-    -   Selecting your framework (Vue, React, Svelte).
-    -   Installing necessary NPM dependencies.
-    -   Scaffolding your entry points and views.
-
-## 📚 Documentation
-
-For more information on the Jengo installer system and base configurations, please visit the **[jengo/base](https://github.com/jengo/base)** repository.
-
-## 🧑‍💻 Credits
-
-This package is a fork of [`fabithub/inertia-ci4`](https://github.com/fabithub/inertia-ci4).
-
-### Original Authors:
-
--   Fab IT Hub
--   Krishna Gujjjar
-
-### Fork Maintainer:
-
--   JengoPHP
--   Ian Ochieng
-
-## 📄 License
-
-This project is open-sourced under the MIT license.
+Released under the MIT License.
