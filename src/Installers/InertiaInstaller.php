@@ -60,7 +60,7 @@ class InertiaInstaller extends AbstractInstaller
         $pm = null;
 
         if ($canInstallDependencies) {
-            $pm = $this->node(); // Use existing if detected, otherwise fallback in PackageManager
+            $pm = $this->selectNodeManager();
             CLI::write("Using package manager: {$pm->getManager()}", 'cyan');
         }
 
