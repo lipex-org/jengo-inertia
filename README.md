@@ -31,9 +31,9 @@ class DashboardController extends BaseController
 }
 ```
 
-## Exception Handling & Error Pages
+## Exception Handling & Error Pages *(New in v1.1.23)*
 
-To return matching Inertia components on errors (e.g. 404, 500, 403) instead of raw CodeIgniter HTML views, `jengo/inertia` provides `InertiaExceptionHandler`.
+To return matching Inertia components on errors (e.g. 404, 500, 403) instead of raw CodeIgniter HTML views, `jengo/inertia` provides `InertiaExceptionHandler` (introduced in **v1.1.23**).
 
 In your `app/Config/Exceptions.php`:
 
