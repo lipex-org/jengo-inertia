@@ -31,9 +31,28 @@ class DashboardController extends BaseController
 }
 ```
 
+## Exception Handling & Error Pages
+
+To return matching Inertia components on errors (e.g. 404, 500, 403) instead of raw CodeIgniter HTML views, `jengo/inertia` provides `InertiaExceptionHandler`.
+
+In your `app/Config/Exceptions.php`:
+
+```php
+use CodeIgniter\Debug\ExceptionHandlerInterface;
+use Jengo\Inertia\Debug\InertiaExceptionHandler;
+use Throwable;
+
+public function handler(int $statusCode, Throwable $exception): ExceptionHandlerInterface
+{
+    return new InertiaExceptionHandler($this);
+}
+```
+
+Running `php spark jengo:install inertia` automatically publishes this configuration. Error pages can be customized per status code in `app/Config/Inertia.php` via `$errorPages`.
+
 ## Documentation
 
-For full guides on Inertia v3 protocol features (lazy, deferred, and partial props), history encryption, and Vite configuration, visit https://lipex-org.github.io/jengophp.com/packages/inertia.
+For full guides on Inertia v3 protocol features (lazy, deferred, and partial props), history encryption, exception handling, and Vite configuration, visit https://lipex-org.github.io/jengophp.com/packages/inertia.
 
 ## License
 

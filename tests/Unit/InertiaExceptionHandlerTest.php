@@ -24,7 +24,6 @@ use Config\Exceptions as ExceptionsConfig;
 use Config\Services;
 use Jengo\Inertia\Config\Inertia as InertiaConfig;
 use Jengo\Inertia\Debug\InertiaExceptionHandler;
-use Jengo\Inertia\Exceptions\InertiaExceptionHandler as InertiaExceptionHandlerAlias;
 use Jengo\Inertia\Inertia;
 use ReflectionClass;
 use ReflectionMethod;
@@ -381,12 +380,5 @@ class InertiaExceptionHandlerTest extends TestCase
 
         @unlink($tempDir . '/error_418.php');
         @rmdir($tempDir);
-    }
-
-    public function testExceptionsAliasClass(): void
-    {
-        $exceptionsConfig = new ExceptionsConfig();
-        $aliasHandler = new InertiaExceptionHandlerAlias($exceptionsConfig);
-        $this->assertInstanceOf(InertiaExceptionHandler::class, $aliasHandler);
     }
 }

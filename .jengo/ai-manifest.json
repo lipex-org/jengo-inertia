@@ -26,10 +26,45 @@
       }
     }
   ],
+  "config": [
+    {
+      "class": "Jengo\\Inertia\\Config\\Inertia",
+      "description": "Inertia configuration defining root view, SSR, filter alias, and error page mappings.",
+      "properties": {
+        "rootView": "string blade/PHP view file name serving as the Inertia root (default: 'app')",
+        "version": "string|null client asset version hash",
+        "isSsrEnabled": "bool whether server-side rendering is enabled",
+        "ssrUrl": "string SSR server endpoint URL",
+        "filterAlias": "string filter alias for Inertia middleware",
+        "errorPages": "array<int|string, string> mapping of HTTP status codes to Inertia error components",
+        "pages": "array<string|int, string> general Inertia page components mapping",
+        "showDebugInDevelopment": "bool whether to display CI4 HTML debug trace in development instead of Inertia error page"
+      },
+      "methods": {
+        "resolveErrorPage": "resolveErrorPage(int|string $statusCode): ?string (Resolves component name for a status code)"
+      }
+    }
+  ],
+  "exceptions": [
+    {
+      "class": "Jengo\\Inertia\\Debug\\InertiaExceptionHandler",
+      "description": "Custom CodeIgniter 4 ExceptionHandler for Inertia apps. Renders matching Inertia components for both SPA requests and browser navigation, returning proper HTTP status codes.",
+      "methods": {
+        "handle": "handle(Throwable $exception, RequestInterface $request, ResponseInterface $response, int $statusCode, int $exitCode): void",
+        "getHandledResponse": "getHandledResponse(): ?ResponseInterface (Access the built HTTP response object)"
+      }
+    }
+  ],
   "middleware": [
     {
       "class": "Jengo\\Inertia\\Middleware",
       "description": "CodeIgniter 4 Filter/Middleware that auto-shares validation errors and flash session data, handles CSRF Vary headers, and client version reloads."
+    }
+  ],
+  "installer": [
+    {
+      "class": "Jengo\\Inertia\\Installers\\InertiaInstaller",
+      "description": "Interactive installer command ('php spark jengo:install inertia') that scaffolds Vue, React, or Svelte client assets, Vite plugins, base views, filters, and publishes Config/Exceptions.php."
     }
   ],
   "testing": [
@@ -63,6 +98,7 @@
   "usage": {
     "render": "return inertia('Dashboard/Index', ['users' => $users]);",
     "share": "Inertia::share('auth.user', $user);",
+    "exceptions": "In Config/Exceptions.php: public function handler(int $statusCode, Throwable $exception): ExceptionHandlerInterface { return new InertiaExceptionHandler($this); }",
     "testing": "$this->get('/dashboard')->assertInertia(fn (Assert $page) => $page->component('Dashboard')->has('users', 3)->etc());"
   }
 }
