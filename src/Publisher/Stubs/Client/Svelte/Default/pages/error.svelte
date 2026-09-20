@@ -1,0 +1,56 @@
+<script>
+    export let status = 500;
+    export let message = '';
+    export let exception = null;
+
+    const titles = {
+        401: 'Unauthorized',
+        403: 'Forbidden',
+        404: 'Page Not Found',
+        419: 'Page Expired',
+        500: 'Server Error',
+        503: 'Service Unavailable',
+    };
+
+    const descriptions = {
+        401: 'You are not authorized to access this resource.',
+        403: 'You do not have permission to access this resource.',
+        404: 'The page you are looking for could not be found.',
+        419: 'The page has expired. Please refresh and try again.',
+        500: 'An unexpected server error occurred.',
+        503: 'Service is temporarily unavailable. Please try again shortly.',
+    };
+
+    $: displayTitle = titles[status] || `Error ${status}`;
+    $: displayDescription = descriptions[status] || message || 'An unexpected error occurred.';
+</script>
+
+<svelte:head>
+    <title>{status}: {displayTitle}</title>
+</svelte:head>
+
+<div class="min-h-screen bg-base-200 text-base-content flex flex-col items-center justify-center px-6 py-12">
+    <div class="max-w-md w-full text-center">
+        <span class="text-7xl font-black text-primary tracking-tight">{status}</span>
+        <h1 class="mt-4 text-2xl font-bold tracking-tight">{displayTitle}</h1>
+        <p class="mt-2 text-base text-base-content/70">{displayDescription}</p>
+
+        <div class="mt-6 flex justify-center gap-4">
+            <a href="/" class="btn btn-primary btn-sm">
+                Return Home
+            </a>
+        </div>
+    </div>
+
+    {#if exception}
+        <div class="mt-10 max-w-3xl w-full p-6 bg-base-100 border border-base-300 rounded-box shadow text-left overflow-auto">
+            <h2 class="text-lg font-bold text-error">{exception.title || 'Exception'}</h2>
+            <p class="mt-1 text-sm font-mono text-base-content/80">{exception.message}</p>
+            {#if exception.file}
+                <p class="mt-2 text-xs font-mono text-base-content/60">
+                    {exception.file}:{exception.line}
+                </p>
+            {/if}
+        </div>
+    {/if}
+</div>

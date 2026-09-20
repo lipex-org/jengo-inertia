@@ -332,6 +332,51 @@ TS;
             unlink($viewFile);
         }
     }
+
+    public function testUpdateExceptionsConfig(): void
+    {
+        $exceptionsPath = APPPATH . 'Config/Exceptions.php';
+        $originalContent = file_exists($exceptionsPath) ? file_get_contents($exceptionsPath) : null;
+
+        $stub = <<<'PHP'
+<?php
+
+namespace Config;
+
+use CodeIgniter\Config\BaseConfig;
+use CodeIgniter\Debug\ExceptionHandler;
+use CodeIgniter\Debug\ExceptionHandlerInterface;
+use Throwable;
+
+class Exceptions extends BaseConfig
+{
+    public function handler(int $statusCode, Throwable $exception): ExceptionHandlerInterface
+    {
+        return new ExceptionHandler($this);
+    }
+}
+PHP;
+
+        file_put_contents($exceptionsPath, $stub);
+
+        $installer = new InertiaInstaller();
+        $installer->updateExceptionsConfig();
+
+        $updated = file_get_contents($exceptionsPath);
+        $this->assertStringContainsString('use Jengo\Inertia\Debug\InertiaExceptionHandler;', $updated);
+        $this->assertStringContainsString('return new InertiaExceptionHandler($this);', $updated);
+
+        // Idempotency: running again should not duplicate
+        $installer->updateExceptionsConfig();
+        $secondRun = file_get_contents($exceptionsPath);
+        $this->assertSame($updated, $secondRun);
+
+        if ($originalContent !== null) {
+            file_put_contents($exceptionsPath, $originalContent);
+        } else {
+            @unlink($exceptionsPath);
+        }
+    }
 }
 
 
