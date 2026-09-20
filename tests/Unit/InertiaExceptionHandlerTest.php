@@ -23,7 +23,6 @@ use Config\App;
 use Config\Exceptions as ExceptionsConfig;
 use Config\Services;
 use Jengo\Inertia\Config\Inertia as InertiaConfig;
-use Jengo\Inertia\Config\Registrar;
 use Jengo\Inertia\Debug\InertiaExceptionHandler;
 use Jengo\Inertia\Exceptions\InertiaExceptionHandler as InertiaExceptionHandlerAlias;
 use Jengo\Inertia\Inertia;
@@ -382,13 +381,6 @@ class InertiaExceptionHandlerTest extends TestCase
 
         @unlink($tempDir . '/error_418.php');
         @rmdir($tempDir);
-    }
-
-    public function testRegistrarProvidesExceptionsHandler(): void
-    {
-        $reg = Registrar::Exceptions();
-        $this->assertArrayHasKey('handler', $reg);
-        $this->assertSame(InertiaExceptionHandler::class, $reg['handler']);
     }
 
     public function testExceptionsAliasClass(): void

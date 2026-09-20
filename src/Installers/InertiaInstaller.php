@@ -100,8 +100,8 @@ class InertiaInstaller extends AbstractInstaller
         $this->publishFilters();
         $this->updateFiltersConfig();
 
-        // Update Exceptions Handler
-        $this->updateExceptionsConfig();
+        // Publish Exceptions Config
+        $this->publishExceptionsConfig();
 
         // Install Dependencies
         if ($canInstallDependencies && $pm) {
@@ -306,37 +306,10 @@ class InertiaInstaller extends AbstractInstaller
         return CLI::prompt('Do you want to include authentication scaffolding (Shield)?', $defaultAnswer, 'in_list[y,n]') === 'y';
     }
 
-    public function updateExceptionsConfig(): void
+    public function publishExceptionsConfig(): void
     {
-        $path = APPPATH . 'Config/Exceptions.php';
-
-        if (!file_exists($path)) {
-            return;
-        }
-
-        $content = file_get_contents($path);
-
-        // 1. Add import if not present
-        if (!str_contains($content, 'use Jengo\Inertia\Debug\InertiaExceptionHandler;')) {
-            $content = preg_replace(
-                '/(use CodeIgniter\\\Debug\\\ExceptionHandler;)/',
-                "$1\nuse Jengo\\Inertia\\Debug\\InertiaExceptionHandler;",
-                $content,
-                1
-            );
-        }
-
-        // 2. Update handler return statement if returning default ExceptionHandler
-        if (str_contains($content, 'return new ExceptionHandler($this);')) {
-            $content = str_replace(
-                'return new ExceptionHandler($this);',
-                'return new InertiaExceptionHandler($this);',
-                $content
-            );
-        }
-
-        file_put_contents($path, $content);
-        CLI::write('Inertia exception handler configured in Config/Exceptions.php', 'green');
+        $this->publish("{$this->stubsDir}/Config", 'app/Config');
+        CLI::write('Exceptions config published.', 'green');
     }
 }
 

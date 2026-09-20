@@ -16,11 +16,4 @@ class Registrar
             ],
         ];
     }
-
-    public static function Exceptions(): array
-    {
-        return [
-            'handler' => \Jengo\Inertia\Debug\InertiaExceptionHandler::class,
-        ];
-    }
 }

@@ -333,43 +333,23 @@ TS;
         }
     }
 
-    public function testUpdateExceptionsConfig(): void
+    public function testPublishExceptionsConfig(): void
     {
         $exceptionsPath = APPPATH . 'Config/Exceptions.php';
         $originalContent = file_exists($exceptionsPath) ? file_get_contents($exceptionsPath) : null;
 
-        $stub = <<<'PHP'
-<?php
-
-namespace Config;
-
-use CodeIgniter\Config\BaseConfig;
-use CodeIgniter\Debug\ExceptionHandler;
-use CodeIgniter\Debug\ExceptionHandlerInterface;
-use Throwable;
-
-class Exceptions extends BaseConfig
-{
-    public function handler(int $statusCode, Throwable $exception): ExceptionHandlerInterface
-    {
-        return new ExceptionHandler($this);
-    }
-}
-PHP;
-
-        file_put_contents($exceptionsPath, $stub);
-
         $installer = new InertiaInstaller();
-        $installer->updateExceptionsConfig();
+        $ref = new ReflectionClass($installer);
+        $stubsDirProp = $ref->getProperty('stubsDir');
+        $stubsDirProp->setAccessible(true);
+        $stubsDirProp->setValue($installer, dirname(__DIR__, 2) . '/src/Publisher/Stubs');
 
-        $updated = file_get_contents($exceptionsPath);
-        $this->assertStringContainsString('use Jengo\Inertia\Debug\InertiaExceptionHandler;', $updated);
-        $this->assertStringContainsString('return new InertiaExceptionHandler($this);', $updated);
+        $installer->publishExceptionsConfig();
 
-        // Idempotency: running again should not duplicate
-        $installer->updateExceptionsConfig();
-        $secondRun = file_get_contents($exceptionsPath);
-        $this->assertSame($updated, $secondRun);
+        $this->assertFileExists($exceptionsPath);
+        $content = file_get_contents($exceptionsPath);
+        $this->assertStringContainsString('use Jengo\Inertia\Debug\InertiaExceptionHandler;', $content);
+        $this->assertStringContainsString('return new InertiaExceptionHandler($this);', $content);
 
         if ($originalContent !== null) {
             file_put_contents($exceptionsPath, $originalContent);
