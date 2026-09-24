@@ -46,7 +46,7 @@ class InertiaInstallerTest extends TestCase
             ROOTPATH . 'vite.config.ts',
             ROOTPATH . 'vite.config.js',
             ROOTPATH . 'app/Views/app.php',
-            ROOTPATH . 'app/Filters/Inertia.php',
+            ROOTPATH . 'app/Filters/HandleInertiaRequests.php',
             ROOTPATH . 'app/Controllers/Home.php',
         ];
         foreach ($paths as $path) {
@@ -181,7 +181,7 @@ PHP;
         $method->invoke($installer);
 
         $updatedContent = file_get_contents($filtersPath);
-        $this->assertStringContainsString("'inertia' => \\App\\Filters\\Inertia::class", $updatedContent);
+        $this->assertStringContainsString("'inertia' => \\App\\Filters\\HandleInertiaRequests::class", $updatedContent);
         $this->assertStringContainsString("'inertia'", $updatedContent);
 
         // Restore original content or delete

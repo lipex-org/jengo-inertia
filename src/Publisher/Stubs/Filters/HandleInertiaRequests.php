@@ -6,7 +6,7 @@ use CodeIgniter\HTTP\RequestInterface;
 use Jengo\Inertia\Middleware;
 use function Jengo\Base\Support\arr;
 
-class Inertia extends Middleware
+class HandleInertiaRequests extends Middleware
 {
     /**
      * @return array

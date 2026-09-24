@@ -255,10 +255,10 @@ class InertiaInstaller extends AbstractInstaller
         $content = file_get_contents($path);
 
         // 1. Add the alias to the $aliases array if it doesn't exist
-        if (!str_contains($content, "'inertia' => \\App\\Filters\\Inertia::class")) {
+        if (!str_contains($content, "'inertia' => \\App\\Filters\\HandleInertiaRequests::class")) {
             // Find the public $aliases = [ line
             $aliasPattern = '/(public\s+array\s+\$aliases\s*=\s*\[)/';
-            $aliasReplacement = "$1\n        'inertia' => \\App\\Filters\\Inertia::class,";
+            $aliasReplacement = "$1\n        'inertia' => \\App\\Filters\\HandleInertiaRequests::class,";
             $content = preg_replace($aliasPattern, $aliasReplacement, $content);
         }
 
