@@ -181,7 +181,7 @@ PHP;
         $method->invoke($installer);
 
         $updatedContent = file_get_contents($filtersPath);
-        $this->assertStringContainsString("'inertia' => \\App\\Filters\\HandleInertiaRequests::class", $updatedContent);
+        $this->assertStringContainsString("'inertia' => 'App\\Filters\\HandleInertiaRequests'", $updatedContent);
         $this->assertStringContainsString("'inertia'", $updatedContent);
 
         // Restore original content or delete

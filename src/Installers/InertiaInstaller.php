@@ -6,6 +6,7 @@ namespace Jengo\Inertia\Installers;
 
 use CodeIgniter\CLI\CLI;
 use Jengo\Base\Installers\Contracts\AbstractInstaller;
+use Jengo\Base\Tooling\Modifier\ClassModifier;
 use Jengo\Base\Traits\HasClientAssets;
 use function Jengo\Base\Support\arr;
 use function Jengo\Base\Support\str;
@@ -244,6 +245,10 @@ class InertiaInstaller extends AbstractInstaller
     }
 
 
+    /**
+     * Register the Inertia filter alias and add it to the global before/after filter lists
+     * in app/Config/Filters.php using ClassModifier for AST-safe edits.
+     */
     protected function updateFiltersConfig(): void
     {
         $path = APPPATH . 'Config/Filters.php';
@@ -252,42 +257,36 @@ class InertiaInstaller extends AbstractInstaller
             return;
         }
 
-        $content = file_get_contents($path);
+        try {
+            $modifier = ClassModifier::fromFile($path);
 
-        // 1. Add the alias to the $aliases array if it doesn't exist
-        if (!str_contains($content, "'inertia' => \\App\\Filters\\HandleInertiaRequests::class")) {
-            // Find the public $aliases = [ line
-            $aliasPattern = '/(public\s+array\s+\$aliases\s*=\s*\[)/';
-            $aliasReplacement = "$1\n        'inertia' => \\App\\Filters\\HandleInertiaRequests::class,";
-            $content = preg_replace($aliasPattern, $aliasReplacement, $content);
+            // 1. Add the filter alias: 'inertia' => \App\Filters\HandleInertiaRequests::class
+            $modifier->mutateArrayProperty('aliases', function (array $aliases) {
+                if (!isset($aliases['inertia'])) {
+                    $aliases['inertia'] = \App\Filters\HandleInertiaRequests::class;
+                }
+                return $aliases;
+            });
+
+            // 2. Add 'inertia' to globals['before'] and globals['after']
+            $modifier->mutateArrayProperty('globals', function (array $globals) {
+                if (!in_array('inertia', $globals['before'] ?? [], true)) {
+                    $globals['before'][] = 'inertia';
+                }
+                if (!in_array('inertia', $globals['after'] ?? [], true)) {
+                    $globals['after'][] = 'inertia';
+                }
+                return $globals;
+            });
+
+            $modifier->saveTo($path);
+        } catch (\Throwable $e) {
+            CLI::write('[WARNING] Could not update Config/Filters.php automatically: ' . $e->getMessage());
+            CLI::write('Please add the following to app/Config/Filters.php manually:');
+            CLI::write("  \$aliases['inertia'] = \\App\\Filters\\HandleInertiaRequests::class;");
+            CLI::write("  \$globals['before'][] = 'inertia';");
+            CLI::write("  \$globals['after'][] = 'inertia';");
         }
-
-        // 2. Add 'inertia' to the globals -> before array
-        // Looks for 'before' => [ and ensures 'inertia' isn't already added
-        if (preg_match('/\'before\'\s*=>\s*\[([^\]]*)/s', $content, $matches)) {
-            if (!str_contains($matches[1], "'inertia'")) {
-                $content = preg_replace(
-                    '/(\'before\'\s*=>\s*\[)/',
-                    "$1\n            'inertia',",
-                    $content
-                );
-            }
-        }
-
-        // 3. Add 'inertia' to the globals -> after array
-        // Looks for 'after' => [ and ensures 'inertia' isn't already added
-        if (preg_match('/\'after\'\s*=>\s*\[([^\]]*)/s', $content, $matches)) {
-            if (!str_contains($matches[1], "'inertia'")) {
-                $content = preg_replace(
-                    '/(\'after\'\s*=>\s*\[)/',
-                    "$1\n            'inertia',",
-                    $content
-                );
-            }
-        }
-
-        // Save the updated configuration back to the file
-        file_put_contents($path, $content);
     }
 
     private function wantsAuth(): bool

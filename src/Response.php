@@ -18,7 +18,7 @@ use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\View\View;
 use Config\View as ConfigView;
 use Inertia\Protocol\ProtocolEngine;
-use Jengo\Base\Inertia\CI4RequestAdapter;
+use Jengo\Inertia\CI4RequestAdapter;
 
 class Response implements ResponsableInterface
 {
