@@ -8,8 +8,6 @@ use CodeIgniter\CLI\CLI;
 use Jengo\Base\Installers\Contracts\AbstractInstaller;
 use Jengo\Base\Tooling\Modifier\ClassModifier;
 use Jengo\Base\Traits\HasClientAssets;
-use function Jengo\Base\Support\arr;
-use function Jengo\Base\Support\str;
 
 class InertiaInstaller extends AbstractInstaller
 {
