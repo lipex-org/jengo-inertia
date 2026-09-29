@@ -122,9 +122,9 @@ describe('Inertia Response Tests', function () {
         /** @var FeatureRequestTestCase $this */
         $result = $this->withRoutes($routes)->get('/props-test');
 
-        expect($result->inertiaProps())->toBeArray();
-        expect($result->inertiaProps('user.name'))->toEqual('John');
-        expect($result->inertiaProps('user.age'))->toEqual(30);
+        expect($this->inertia($result)->inertiaProps())->toBeArray();
+        expect($this->inertia($result)->inertiaProps('user.name'))->toEqual('John');
+        expect($this->inertia($result)->inertiaProps('user.age'))->toEqual(30);
     });
 
     it('validates interactions and supports etc()', function () {
@@ -145,7 +145,7 @@ describe('Inertia Response Tests', function () {
         // 1. Fails if we don't interact with all keys
         $failed = false;
         try {
-            $result->assertInertia(fn ($page) => $page->component('Home')->has('user'));
+            $this->assertInertia($result, fn ($page) => $page->component('Home')->has('user'));
         } catch (\PHPUnit\Framework\AssertionFailedError $e) {
             $failed = true;
             expect($e->getMessage())->toContain('unexpected properties: [ignored]');
@@ -153,7 +153,7 @@ describe('Inertia Response Tests', function () {
         expect($failed)->toBeTrue();
 
         // 2. Passes if we call etc()
-        $result->assertInertia(fn ($page) => $page->component('Home')->has('user')->etc());
+        $this->assertInertia($result, fn ($page) => $page->component('Home')->has('user')->etc());
     });
 
     it('supports reloadOnly and reloadExcept', function () {
@@ -182,7 +182,7 @@ describe('Inertia Response Tests', function () {
         /** @var FeatureRequestTestCase $this */
         $result = $this->withRoutes($routes)->get('/reload-test');
 
-        $result->assertInertia(fn ($page) => $page
+        $this->assertInertia($result, fn ($page) => $page
             ->component('Home')
             ->where('a', 'initial_a')
             ->where('b', 'initial_b')
@@ -218,7 +218,7 @@ describe('Inertia Response Tests', function () {
         /** @var FeatureRequestTestCase $this */
         $result = $this->withRoutes($routes)->get('/deferred-test');
 
-        $result->assertInertia(fn ($page) => $page
+        $this->assertInertia($result, fn ($page) => $page
             ->component('Home')
             ->where('normal_prop', 'normal')
             ->missing('deferred_prop')
@@ -250,7 +250,7 @@ describe('Inertia Response Tests', function () {
         /** @var FeatureRequestTestCase $this */
         $result = $this->withRoutes($routes)->get('/flash-page');
 
-        $result->assertInertia(fn ($page) => $page
+        $this->assertInertia($result, fn ($page) => $page
             ->component('Home')
             ->hasFlash('message', 'Item saved!')
             ->hasFlash('nested.type', 'success')
@@ -258,7 +258,8 @@ describe('Inertia Response Tests', function () {
         );
 
         $redirectResult = $this->withRoutes($routes)->get('/redirect-trigger');
-        $redirectResult->assertInertiaFlash('message', 'Redirect flash!')
+        $this->inertia($redirectResult)
+            ->assertInertiaFlash('message', 'Redirect flash!')
             ->assertInertiaFlashMissing('error');
     });
 });

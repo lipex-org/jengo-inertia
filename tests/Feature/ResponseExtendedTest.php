@@ -71,7 +71,7 @@ describe('Response Extended Tests', function () {
         /** @var FeatureRequestTestCase $this */
         $result = $this->withRoutes($routes)->get('/complex-page');
 
-        $result->assertInertia(function (AssertableInertia $page) {
+        $this->assertInertia($result, function (AssertableInertia $page) {
             $page->component('Dashboard', false) // partial match
                 ->has('users', 2, function (AssertableInertia $userScope) {
                     $userScope->where('name', 'Alice')
@@ -107,7 +107,7 @@ describe('Response Extended Tests', function () {
         /** @var FeatureRequestTestCase $this */
         $result = $this->withRoutes($routes)->get('/reload-except-test');
 
-        $result->assertInertia(function (AssertableInertia $page) {
+        $this->assertInertia($result, function (AssertableInertia $page) {
             $page->component('Home')
                 ->where('keep', 'kept_data')
                 ->where('drop', 'dropped_data')
@@ -144,28 +144,28 @@ describe('Response Extended Tests', function () {
         $postRes = $this->withRoutes($routes)->post('/users', ['name' => 'Charlie']);
         $postRes->assertStatus(200);
         $this->assertInertia($postRes);
-        $postRes->assertInertia(function (AssertableInertia $page) {
+        $this->assertInertia($postRes, function (AssertableInertia $page) {
             $page->component('Users/Index')->where('created', 'Charlie');
         });
 
         $putRes = $this->withRoutes($routes)->put('/users/42', ['role' => 'admin']);
         $putRes->assertStatus(200);
         $this->assertInertia($putRes);
-        $putRes->assertInertia(function (AssertableInertia $page) {
+        $this->assertInertia($putRes, function (AssertableInertia $page) {
             $page->component('Users/Index')->where('updated', 42);
         });
 
         $patchRes = $this->withRoutes($routes)->patch('/users/42', ['status' => 'active']);
         $patchRes->assertStatus(200);
         $this->assertInertia($patchRes);
-        $patchRes->assertInertia(function (AssertableInertia $page) {
+        $this->assertInertia($patchRes, function (AssertableInertia $page) {
             $page->component('Users/Index')->where('patched', 42);
         });
 
         $delRes = $this->withRoutes($routes)->delete('/users/42');
         $delRes->assertStatus(200);
         $this->assertInertia($delRes);
-        $delRes->assertInertia(function (AssertableInertia $page) {
+        $this->assertInertia($delRes, function (AssertableInertia $page) {
             $page->component('Users/Index')->where('deleted', 42);
         });
     });
@@ -186,25 +186,25 @@ describe('Response Extended Tests', function () {
         $this->assertInertia($result->response());
 
         // Test fluent assertInertia callback on X-Inertia response
-        $result->assertInertia(function (AssertableInertia $page) {
+        $this->assertInertia($result, function (AssertableInertia $page) {
             $page->component('Api/Page')
                 ->where('status', 'ok')
                 ->missing('nested.missing_prop')
                 ->has('nested.item');
         });
 
-        // Test __call delegation on TestResponse
+        // Test response assertions
         $result->assertStatus(200);
         $result->assertOK();
         expect($result->isOK())->toBeTrue();
         expect($result->response())->toBeInstanceOf(\CodeIgniter\HTTP\ResponseInterface::class);
 
         // Test inertiaProps on X-Inertia response
-        $props = $result->inertiaProps();
+        $props = $this->inertia($result)->inertiaProps();
         expect($props)->toHaveKey('status');
-        expect($result->inertiaProps('status'))->toEqual('ok');
-        expect($result->inertiaProps('nested.item'))->toEqual('val');
-        expect($result->inertiaProps('nonexistent.nested'))->toBeNull();
+        expect($this->inertia($result)->inertiaProps('status'))->toEqual('ok');
+        expect($this->inertia($result)->inertiaProps('nested.item'))->toEqual('val');
+        expect($this->inertia($result)->inertiaProps('nonexistent.nested'))->toBeNull();
     });
 
     it('supports loadDeferredProps with string group name and empty group fallback', function () {
@@ -232,7 +232,7 @@ describe('Response Extended Tests', function () {
         /** @var FeatureRequestTestCase $this */
         $result = $this->withRoutes($routes)->get('/deferred-group-test?tab=overview');
 
-        $result->assertInertia(function (AssertableInertia $page) {
+        $this->assertInertia($result, function (AssertableInertia $page) {
             $page->component('StatsPage')
                 ->where('main', 'data')
                 ->loadDeferredProps('analytics', function (AssertableInertia $analytics) {

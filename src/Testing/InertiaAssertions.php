@@ -4,27 +4,23 @@ declare(strict_types=1);
 
 namespace Jengo\Inertia\Testing;
 
-use CodeIgniter\HTTP\ResponseInterface;
-use CodeIgniter\Test\TestResponse as CITestResponse;
 use PHPUnit\Framework\Assert as PHPUnit;
 
 trait InertiaAssertions
 {
     /**
-     * Public proxy to run protected HTTP requests from other classes (e.g. TestResponse).
+     * Public proxy to run HTTP requests for follow-up testing (e.g. reload and deferred props).
      */
     public function callInertiaRequest(string $method, string $path, array $data = [], array $headers = []): TestResponse
     {
-        if (!empty($headers)) {
+        if (!empty($headers) && method_exists($this, 'withHeaders')) {
             $this->withHeaders($headers);
         }
 
         $method = strtolower($method);
-        if ($method === 'get') {
-            return $this->get($path);
-        }
+        $result = $this->{$method}($path, $data);
 
-        return $this->{$method}($path, $data);
+        return InertiaTestHelper::wrap($result, $this);
     }
 
     /**
@@ -32,15 +28,7 @@ trait InertiaAssertions
      */
     protected function assertInertia(mixed $response, ?callable $callback = null): void
     {
-        if ($response instanceof TestResponse) {
-            $wrapped = $response;
-        } elseif ($response instanceof CITestResponse) {
-            $wrapped = new TestResponse($response, $this);
-        } elseif ($response instanceof ResponseInterface) {
-            $wrapped = new TestResponse(new CITestResponse($response), $this);
-        } else {
-            $wrapped = new TestResponse($response, $this);
-        }
+        $wrapped = InertiaTestHelper::wrap($response, $this);
 
         if ($callback !== null) {
             $wrapped->assertInertia($callback);
@@ -66,42 +54,10 @@ trait InertiaAssertions
     }
 
     /**
-     * Override standard HTTP GET method to return Jengo's custom TestResponse wrapper.
+     * Wrap a test response in an Inertia TestResponse wrapper for fluent assertions.
      */
-    protected function get(string $path, array $headers = []): TestResponse
+    protected function inertia(mixed $response): TestResponse
     {
-        return new TestResponse($this->parentGet($path, $headers), $this);
-    }
-
-    /**
-     * Override standard HTTP POST method.
-     */
-    protected function post(string $path, array $data = [], array $headers = []): TestResponse
-    {
-        return new TestResponse($this->parentPost($path, $data, $headers), $this);
-    }
-
-    /**
-     * Override standard HTTP PUT method.
-     */
-    protected function put(string $path, array $data = [], array $headers = []): TestResponse
-    {
-        return new TestResponse($this->parentPut($path, $data, $headers), $this);
-    }
-
-    /**
-     * Override standard HTTP PATCH method.
-     */
-    protected function patch(string $path, array $data = [], array $headers = []): TestResponse
-    {
-        return new TestResponse($this->parentPatch($path, $data, $headers), $this);
-    }
-
-    /**
-     * Override standard HTTP DELETE method.
-     */
-    protected function delete(string $path, array $data = [], array $headers = []): TestResponse
-    {
-        return new TestResponse($this->parentDelete($path, $data, $headers), $this);
+        return InertiaTestHelper::wrap($response, $this);
     }
 }
