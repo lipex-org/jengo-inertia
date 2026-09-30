@@ -1,6 +1,6 @@
 {
   "name": "jengo/inertia",
-  "description": "Inertia.js server-side adapter for Jengo CodeIgniter 4 applications, enabling modern SPA frontend development.",
+  "description": "Inertia.js server-side adapter for Jengo CodeIgniter 4 applications, enabling modern SPA frontend development with Vue, React, and Svelte.",
   "helpers": [
     {
       "name": "inertia",
@@ -58,23 +58,23 @@
   "middleware": [
     {
       "class": "Jengo\\Inertia\\Middleware",
-      "description": "CodeIgniter 4 Filter/Middleware that auto-shares validation errors and flash session data, handles CSRF Vary headers, and client version reloads."
+      "description": "CodeIgniter 4 Filter/Middleware that auto-shares validation errors and flash session data, handles CSRF Vary headers, and client version reloads. Published to app/Filters/HandleInertiaRequests.php extending Middleware."
     }
   ],
   "installer": [
     {
       "class": "Jengo\\Inertia\\Installers\\InertiaInstaller",
-      "description": "Interactive installer command ('php spark jengo:install inertia') that scaffolds Vue, React, or Svelte client assets, Vite plugins, base views, filters, and publishes Config/Exceptions.php."
+      "description": "Interactive installer command ('php spark jengo:install inertia') that scaffolds Vue, React, or Svelte client assets, Vite plugins, base views, filters (HandleInertiaRequests), and publishes Config/Exceptions.php."
     }
   ],
   "testing": [
     {
       "trait": "Jengo\\Inertia\\Testing\\InertiaAssertions",
-      "description": "Exposes HTTP request testing wrappers (get, post, put, patch, delete) that return Jengo's custom TestResponse with fluent assertions.",
+      "description": "Provides assertInertia() assertion helper accepting any CI4 ResponseInterface or TestResponse instance, as well as an inertia($response) wrapper for fluent inspections.",
       "methods": {
-        "assertInertia": "assertInertia(callable $callback): self (Fluent assertions callback)",
-        "assertInertiaFlash": "assertInertiaFlash(string $key, mixed $expected = null): self (Assert redirect flash data)",
-        "assertInertiaFlashMissing": "assertInertiaFlashMissing(string $key): self (Assert redirect flash data does not exist)"
+        "assertInertia": "assertInertia(mixed $response, ?callable $callback = null): void (Asserts valid Inertia response and passes AssertableInertia to callback)",
+        "inertia": "inertia(mixed $response): TestResponse (Wraps response into Inertia TestResponse)",
+        "callInertiaRequest": "callInertiaRequest(string $method, string $path, array $data = [], array $headers = []): TestResponse"
       }
     },
     {
@@ -93,12 +93,22 @@
         "hasFlash": "hasFlash(string $key, mixed $expected = null): self (Assert rendered page session flash)",
         "missingFlash": "missingFlash(string $key): self (Assert page flash does not exist)"
       }
+    },
+    {
+      "class": "Jengo\\Inertia\\Testing\\TestResponse",
+      "description": "Wrapper around CodeIgniter TestResponse providing fluent Inertia assertions.",
+      "methods": {
+        "assertInertia": "assertInertia(callable $callback): self",
+        "inertiaProps": "inertiaProps(?string $key = null): mixed",
+        "assertInertiaFlash": "assertInertiaFlash(string $key, mixed $expected = null): self",
+        "assertInertiaFlashMissing": "assertInertiaFlashMissing(string $key): self"
+      }
     }
   ],
   "usage": {
     "render": "return inertia('Dashboard/Index', ['users' => $users]);",
     "share": "Inertia::share('auth.user', $user);",
     "exceptions": "In Config/Exceptions.php: public function handler(int $statusCode, Throwable $exception): ExceptionHandlerInterface { return new InertiaExceptionHandler($this); }",
-    "testing": "$this->get('/dashboard')->assertInertia(fn (Assert $page) => $page->component('Dashboard')->has('users', 3)->etc());"
+    "testing": "$response = $this->get('/dashboard'); $this->assertInertia($response, fn (AssertableInertia $page) => $page->component('Dashboard/Index')->has('users', 3)->etc());"
   }
 }
