@@ -45,8 +45,7 @@ class Middleware implements FilterInterface
         // subsequent form failures calling redirect()->back() return to this SPA page.
         if (
             $request->hasHeader('X-Inertia') &&
-            strtolower(request()->getMethod()) === 'get' &&
-            isset($_SESSION)
+            strtolower(request()->getMethod()) === 'get'
         ) {
             session()->set('_ci_previous_url', (string) $request->getUri());
         }
