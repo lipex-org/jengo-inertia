@@ -17,7 +17,6 @@ use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
-use CodeIgniter\Validation\ValidationInterface;
 use Jengo\Inertia\Extras\Http;
 /**
  * @psalm-api
@@ -30,10 +29,7 @@ class Middleware implements FilterInterface
      */
     public function withShare(RequestInterface $request): array
     {
-        return [
-            "errors" => Inertia::always($this->resolveValidationErrors($request)),
-            "flash" => Inertia::always(session()->getFlashdata()),
-        ];
+        return [];
     }
 
     /**
@@ -128,31 +124,5 @@ class Middleware implements FilterInterface
         \session()->regenerate(true);
 
         return Inertia::location($request->getUri());
-    }
-
-    /**
-     * Resolves and prepares validation errors in such
-     * a way that they are easier to use client-side.
-     */
-    private function resolveValidationErrors(RequestInterface $request): object
-    {
-        service("session");
-
-        /** @var ValidationInterface */
-        $validation = service("validation");
-
-        $errors = session()->getFlashdata("errors") ?? $validation->getErrors();
-
-        if (!$errors) {
-            return (object) [];
-        }
-
-        if ($request->hasHeader("x-inertia-error-bag")) {
-            return (object) [
-                Http::getHeaderValue("x-inertia-error-bag") => $errors,
-            ];
-        }
-
-        return (object) $errors;
     }
 }

@@ -121,7 +121,21 @@ class ResponseFactory
      */
     public function render(string $component, array $props = []): ResponseInterface
     {
-        return (new Response($component, array_merge($this->sharedProps, $props), $this->getVersion()))
+        // resolve errors and flashdata
+        $this->withValidationErrors()->withFlashData();
+
+        $allProps = array_merge($this->sharedProps, $props);
+
+        $systemKeys = ['errors', 'flash'];
+        // check for any intersection and throw an exception for overwritten props
+        $propsKeys = array_keys($props);
+        $intersection = array_intersect($systemKeys, $propsKeys);
+
+        if (!empty($intersection)) {
+            throw new \InvalidArgumentException('The following props are overwriting system props: `[' . implode(',', $intersection) .']`. Choose different keys for these props to avoid this error.');
+        }
+
+        return (new Response($component, $allProps, $this->getVersion()))
             ->withSharedKeys($this->sharedKeys)->getResponse();
     }
 
@@ -220,5 +234,49 @@ class ResponseFactory
         }
 
         return Directive::compile($page);
+    }
+
+        /**
+     * Resolves and prepares validation errors in such
+     * a way that they are easier to use client-side.
+     */
+    private  function withValidationErrors (): self
+    {
+        $validation = service("validation");
+
+        $validatorErrors = $validation->getErrors();
+        $flashDataErrors = session()->getFlashdata("errors") ?? [];
+
+        $errors = array_merge($flashDataErrors, $validatorErrors);
+
+        if (request()->hasHeader("x-inertia-error-bag")) {
+            $errors = ([
+                Http::getHeaderValue("x-inertia-error-bag") => $errors,
+            ]);
+        }
+
+        $this->sharedProps = array_merge($this->sharedProps, ["errors" => $errors]);
+        $this->sharedKeys = array_unique(array_merge($this->sharedKeys, ["errors"]));
+
+        return $this;
+    }
+    
+    /**
+     * Returns the list of flashdata
+     * @return ResponseFactory
+     */
+    private function withFlashData (): self
+    {
+        $allFlashData = session()->getFlashdata();
+
+        // filter out errors flashdata, data that starts with _ci_
+        $flashData = array_filter($allFlashData, function ($key) {
+            return strpos($key, '_ci_') !== 0 && $key !== 'errors';
+        }, ARRAY_FILTER_USE_KEY);
+
+        $this->sharedProps = array_merge($this->sharedProps, ["flash" => $flashData]);
+        $this->sharedKeys = array_unique(array_merge($this->sharedKeys, ["flash"]));
+
+        return $this;
     }
 }
