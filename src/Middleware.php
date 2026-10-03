@@ -41,6 +41,16 @@ class Middleware implements FilterInterface
      */
     public function before(RequestInterface $request, $arguments = null): void
     {
+        // For Inertia SPA GET requests, update CI4's previous URL session tracker so that
+        // subsequent form failures calling redirect()->back() return to this SPA page.
+        if (
+            $request->hasHeader('X-Inertia') &&
+            strtolower(request()->getMethod()) === 'get' &&
+            isset($_SESSION)
+        ) {
+            session()->set('_ci_previous_url', (string) $request->getUri());
+        }
+
         Inertia::share($this->withShare($request));
     }
 

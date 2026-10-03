@@ -32,7 +32,10 @@ class MiddlewareTest extends TestCase
     private function createRequest(string $method = 'GET', string $url = 'http://example.com/test', array $headers = []): IncomingRequest
     {
         $config = new App();
-        $uri = new \CodeIgniter\HTTP\SiteURI($config, $url);
+        $config->baseURL = 'http://example.com/';
+        $config->indexPage = '';
+        $path = parse_url($url, PHP_URL_PATH) ?? '/';
+        $uri = new \CodeIgniter\HTTP\SiteURI($config, ltrim($path, '/'));
         $userAgent = new UserAgent();
         $request = new IncomingRequest($config, $uri, 'php://input', $userAgent);
         $request->setMethod($method);
@@ -102,6 +105,32 @@ class MiddlewareTest extends TestCase
         $shared = Inertia::getShared(null);
         $this->assertArrayHasKey('errors', $shared);
         $this->assertArrayHasKey('flash', $shared);
+    }
+
+    public function testBeforeUpdatesCiPreviousUrlOnInertiaGetRequest(): void
+    {
+        session()->set('_ci_previous_url', 'http://example.com/old-page');
+
+        $request = $this->createRequest('GET', 'http://example.com/login', [
+            'X-Inertia' => 'true',
+        ]);
+
+        $this->middleware->before($request);
+
+        $this->assertSame('http://example.com/login', session()->get('_ci_previous_url'));
+    }
+
+    public function testBeforeDoesNotUpdateCiPreviousUrlOnInertiaPostRequest(): void
+    {
+        session()->set('_ci_previous_url', 'http://example.com/login');
+
+        $request = $this->createRequest('POST', 'http://example.com/login', [
+            'X-Inertia' => 'true',
+        ]);
+
+        $this->middleware->before($request);
+
+        $this->assertSame('http://example.com/login', session()->get('_ci_previous_url'));
     }
 
     public function testAfterAddsVaryHeaderAndPassesThroughNonInertiaRequest(): void
