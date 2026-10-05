@@ -11,18 +11,37 @@
   "facades": [
     {
       "class": "Jengo\\Inertia\\Inertia",
-      "description": "Inertia facade to control state sharing, SSR, versioning, and redirects.",
+      "description": "Inertia facade to control state sharing, SSR, versioning, flash data, deferred loading, and redirects.",
       "methods": {
         "render": "render(string $component, array $props = [], array $viewData = []): ResponseInterface (Render Inertia component)",
         "share": "share(string|array $key, $value = null): void (Share data with all Inertia components)",
+        "getShared": "getShared(?string $key = null, $default = null): mixed (Retrieve shared data)",
+        "flushShared": "flushShared(): void (Clear all shared data)",
         "version": "version(Closure|string|null $version): void (Configure client asset version)",
+        "getVersion": "getVersion(): string (Get resolved asset version)",
         "location": "location(Request|string $url): ResponseInterface (Trigger external redirect)",
-        "lazy": "lazy(Closure $callback): Lazy (Configure lazy-evaluable prop)",
-        "defer": "defer(Closure $callback, string $group = 'default'): Defer",
-        "once": "once(Closure $callback): Once",
-        "merge": "merge(mixed $value): Mergeable",
-        "always": "always(mixed $value): Always",
+        "flash": "flash(array|string $data, $value = null): ResponseFactory (Set flash data for next request)",
+        "lazy": "lazy(Closure $callback): Lazy (Configure lazy-evaluable prop on partial reload)",
+        "defer": "defer(Closure $callback, string $group = 'default'): Defer (Configure non-blocking deferred prop)",
+        "once": "once(Closure $callback): Once (Configure one-time cached prop)",
+        "merge": "merge(mixed $value): Mergeable (Append mergeable prop)",
+        "prepend": "prepend(mixed $value): Mergeable (Prepend mergeable prop)",
+        "deepMerge": "deepMerge(mixed $value): Mergeable (Deep merge object/array prop)",
+        "always": "always(mixed $value): Always (Always include prop even on partial reload)",
         "disableSsr": "disableSsr(mixed $disable = true): void (Disable SSR rendering for test environments)"
+      }
+    }
+  ],
+  "response": [
+    {
+      "class": "Jengo\\Inertia\\Response",
+      "description": "Fluent response builder supporting history encryption, clearing, scroll reset, and URL fragment preservation.",
+      "methods": {
+        "with": "with(array|string $key, $value = null): self (Bind props)",
+        "encryptHistory": "encryptHistory(bool $encrypt = true): static (Encrypt client-side history state)",
+        "clearHistory": "clearHistory(bool $clear = true): static (Clear client-side history state)",
+        "preserveFragment": "preserveFragment(bool $preserve = true): static (Preserve #hash fragment across redirects)",
+        "scrollProps": "scrollProps(array $props): static (Configure client scroll retention props)"
       }
     }
   ],
@@ -108,6 +127,7 @@
   "usage": {
     "render": "return inertia('Dashboard/Index', ['users' => $users]);",
     "share": "Inertia::share('auth.user', $user);",
+    "history": "return inertia('Profile/Edit', $data)->encryptHistory()->clearHistory()->preserveFragment();",
     "exceptions": "In Config/Exceptions.php: public function handler(int $statusCode, Throwable $exception): ExceptionHandlerInterface { return new InertiaExceptionHandler($this); }",
     "testing": "$response = $this->get('/dashboard'); $this->assertInertia($response, fn (AssertableInertia $page) => $page->component('Dashboard/Index')->has('users', 3)->etc());"
   }
