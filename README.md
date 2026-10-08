@@ -1,8 +1,22 @@
-# Jengo Inertia
+<p align="center">
+  <a href="https://lipex-org.github.io/jengophp.com/">
+    <img src="https://raw.githubusercontent.com/lipex-org/docs/main/public/logo-full.png" width="220" alt="Jengo Logo">
+  </a>
+</p>
 
-The official CodeIgniter 4 adapter for Inertia.js, bringing modern single-page app frontend workflows (React, Vue, Svelte) to classic server-side routing and controllers.
+<h1 align="center">Jengo Inertia</h1>
 
-Documentation: https://lipex-org.github.io/jengophp.com/packages/inertia
+<p align="center">
+  <strong>Modern Single Page Application (SPA) adapter connecting CodeIgniter 4 with React, Vue 3, and Svelte via Inertia.js v3.</strong>
+</p>
+
+<p align="center">
+  <a href="https://lipex-org.github.io/jengophp.com/packages/inertia"><strong>Documentation</strong></a> •
+  <a href="https://github.com/lipex-org/inertia/blob/main/LICENSE"><strong>License</strong></a> •
+  <a href="https://github.com/lipex-org/inertia/issues"><strong>Issues</strong></a>
+</p>
+
+---
 
 ## Installation
 
