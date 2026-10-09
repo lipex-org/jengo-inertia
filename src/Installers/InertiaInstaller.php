@@ -102,6 +102,9 @@ class InertiaInstaller extends AbstractInstaller
         // Publish Exceptions Config
         $this->publishExceptionsConfig();
 
+        // Update Routes
+        $this->updateRoutes();
+
         // Install Dependencies
         if ($canInstallDependencies && $pm) {
             $dependencies = $this->getDependencies($this->framework);
@@ -308,5 +311,43 @@ class InertiaInstaller extends AbstractInstaller
         $this->publish("{$this->stubsDir}/Config", 'app/Config');
         CLI::write('Exceptions config published.', 'green');
     }
+
+    private function updateRoutes(): void
+    {
+        $routesPath = APPPATH . 'Config/Routes.php';
+        if (!file_exists($routesPath)) {
+            return;
+        }
+
+        $content = file_get_contents($routesPath);
+
+        // Determine filter based on auth package installed
+        $filter = 'session';
+        $composerJsonPath = ROOTPATH . 'composer.json';
+        if (file_exists($composerJsonPath)) {
+            $composerJson = json_decode((string) file_get_contents($composerJsonPath), true);
+            $deps = array_merge($composerJson['require'] ?? [], $composerJson['require-dev'] ?? []);
+            if (isset($deps['jengo/auth'])) {
+                $filter = 'auth:universal';
+            }
+        }
+
+        $dashboardRoute = <<<PHP
+
+
+// Jengo Inertia Dashboard Route
+\$routes->get('dashboard', function () {
+    return inertia('dashboard');
+}, ['filter' => ['{$filter}']]);
+
+PHP;
+
+        if (!str_contains($content, "get('dashboard'") && !str_contains($content, 'get("dashboard"')) {
+            $content .= $dashboardRoute;
+            $this->writeFile($routesPath, $content);
+            CLI::write('Inertia dashboard route published.', 'green');
+        }
+    }
 }
+
 
