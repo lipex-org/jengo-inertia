@@ -15,6 +15,7 @@ namespace Jengo\Inertia;
 use Closure;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
+use Jengo\Base\Container\Container;
 use Jengo\Inertia\Extras\Arr;
 use Jengo\Inertia\Extras\Http;
 use function Jengo\Base\vite_version;
@@ -132,7 +133,7 @@ class ResponseFactory
         $intersection = array_intersect($systemKeys, $propsKeys);
 
         if (!empty($intersection)) {
-            throw new \InvalidArgumentException('The following props are overwriting system props: `[' . implode(',', $intersection) .']`. Choose different keys for these props to avoid this error.');
+            throw new \InvalidArgumentException('The following props are overwriting system props: `[' . implode(',', $intersection) . ']`. Choose different keys for these props to avoid this error.');
         }
 
         return (new Response($component, $allProps, $this->getVersion()))
@@ -141,17 +142,20 @@ class ResponseFactory
 
     public function lazy(Closure $callback): Props\Lazy
     {
-        return new Props\Lazy($callback);
+        $diCallback = static fn() => Container::getInstance()->call($callback);
+        return new Props\Lazy($diCallback);
     }
 
     public function defer(Closure $callback, string $group = 'default'): Props\Defer
     {
-        return new Props\Defer($group, $callback);
+        $diCallback = static fn() => Container::getInstance()->call($callback);
+        return new Props\Defer($group, $diCallback);
     }
 
     public function once(Closure $callback): Props\Once
     {
-        return new Props\Once($callback);
+        $diCallback = static fn() => Container::getInstance()->call($callback);
+        return new Props\Once($diCallback);
     }
 
     public function merge(mixed $value): Props\Mergeable
@@ -236,11 +240,11 @@ class ResponseFactory
         return Directive::compile($page);
     }
 
-        /**
+    /**
      * Resolves and prepares validation errors in such
      * a way that they are easier to use client-side.
      */
-    private  function withValidationErrors (): self
+    private function withValidationErrors(): self
     {
         $validation = service("validation");
 
@@ -260,12 +264,12 @@ class ResponseFactory
 
         return $this;
     }
-    
+
     /**
      * Returns the list of flashdata
      * @return ResponseFactory
      */
-    private function withFlashData (): self
+    private function withFlashData(): self
     {
         $allFlashData = session()->getFlashdata();
 
