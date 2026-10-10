@@ -74,7 +74,8 @@ class InertiaInstaller extends AbstractInstaller
         }
 
         // Publish Client Stubs
-        $hasAuth = $this->wantsAuth();
+        $authType = $this->resolveAuthType();
+        $hasAuth = $authType !== 'none';
         $stubType = $hasAuth ? 'WithAuth' : 'Default';
 
         $sourceStubDir = match ($this->framework) {
@@ -103,7 +104,7 @@ class InertiaInstaller extends AbstractInstaller
         $this->publishExceptionsConfig();
 
         // Update Routes
-        $this->updateRoutes();
+        $this->updateRoutes($authType);
 
         // Install Dependencies
         if ($canInstallDependencies && $pm) {
@@ -290,20 +291,53 @@ class InertiaInstaller extends AbstractInstaller
         }
     }
 
-    private function wantsAuth(): bool
+    private function resolveAuthType(): string
     {
         $auth = CLI::getOption('auth');
         if ($auth !== null) {
-            return in_array($auth, ['y', 'yes', 'true', '1', true], true);
+            $auth = strtolower((string) $auth);
+            if (in_array($auth, ['jengo', 'shield', 'none'], true)) {
+                return $auth;
+            }
+            if (in_array($auth, ['y', 'yes', 'true', '1'], true)) {
+                // Check if jengo/auth is in composer.json
+                $composerJsonPath = ROOTPATH . 'composer.json';
+                if (file_exists($composerJsonPath)) {
+                    $composerJson = json_decode((string) file_get_contents($composerJsonPath), true);
+                    $deps = array_merge($composerJson['require'] ?? [], $composerJson['require-dev'] ?? []);
+                    if (isset($deps['jengo/auth'])) {
+                        return 'jengo';
+                    }
+                }
+                return 'shield';
+            }
+            if (in_array($auth, ['n', 'no', 'false', '0'], true)) {
+                return 'none';
+            }
         }
 
-        // If not specified via CLI, check if Shield is installed
-        $shieldExists = class_exists('CodeIgniter\Shield\Auth') || file_exists(APPPATH . 'Config/Auth.php');
+        // Check composer.json if jengo/auth is already declared
+        $composerJsonPath = ROOTPATH . 'composer.json';
+        if (file_exists($composerJsonPath)) {
+            $composerJson = json_decode((string) file_get_contents($composerJsonPath), true);
+            $deps = array_merge($composerJson['require'] ?? [], $composerJson['require-dev'] ?? []);
+            if (isset($deps['jengo/auth'])) {
+                return 'jengo';
+            }
+            if (isset($deps['codeigniter4/shield'])) {
+                return 'shield';
+            }
+        }
 
-        // Use Shield existence as default choice
-        $defaultAnswer = $shieldExists ? ['y', 'n'] : ['n', 'y'];
+        if (class_exists('CodeIgniter\Shield\Auth') || file_exists(APPPATH . 'Config/Auth.php')) {
+            return 'shield';
+        }
 
-        return CLI::prompt('Do you want to include authentication scaffolding (Shield)?', $defaultAnswer, 'in_list[y,n]') === 'y';
+        return CLI::prompt(
+            'Which authentication provider do you want to use?',
+            ['jengo', 'shield', 'none'],
+            'in_list[jengo,shield,none]'
+        );
     }
 
     public function publishExceptionsConfig(): void
@@ -312,7 +346,7 @@ class InertiaInstaller extends AbstractInstaller
         CLI::write('Exceptions config published.', 'green');
     }
 
-    private function updateRoutes(): void
+    private function updateRoutes(string $authType): void
     {
         $routesPath = APPPATH . 'Config/Routes.php';
         if (!file_exists($routesPath)) {
@@ -321,18 +355,15 @@ class InertiaInstaller extends AbstractInstaller
 
         $content = file_get_contents($routesPath);
 
-        // Determine filter based on auth package installed
-        $filter = 'session';
-        $composerJsonPath = ROOTPATH . 'composer.json';
-        if (file_exists($composerJsonPath)) {
-            $composerJson = json_decode((string) file_get_contents($composerJsonPath), true);
-            $deps = array_merge($composerJson['require'] ?? [], $composerJson['require-dev'] ?? []);
-            if (isset($deps['jengo/auth'])) {
-                $filter = 'auth:universal';
-            }
-        }
+        // Determine filter based on auth type
+        $filter = match ($authType) {
+            'jengo' => 'auth:universal',
+            'shield' => 'session',
+            default => null,
+        };
 
-        $dashboardRoute = <<<PHP
+        if ($filter !== null) {
+            $dashboardRoute = <<<PHP
 
 
 // Jengo Inertia Dashboard Route
@@ -342,12 +373,14 @@ class InertiaInstaller extends AbstractInstaller
 
 PHP;
 
-        if (!str_contains($content, "get('dashboard'") && !str_contains($content, 'get("dashboard"')) {
-            $content .= $dashboardRoute;
-            $this->writeFile($routesPath, $content);
-            CLI::write('Inertia dashboard route published.', 'green');
+            if (!str_contains($content, "get('dashboard'") && !str_contains($content, 'get("dashboard"')) {
+                $content .= $dashboardRoute;
+                $this->writeFile($routesPath, $content);
+                CLI::write('Inertia dashboard route published.', 'green');
+            }
         }
     }
 }
+
 
 
