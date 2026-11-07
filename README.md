@@ -64,6 +64,36 @@ public function handler(int $statusCode, Throwable $exception): ExceptionHandler
 
 Running `php spark jengo:install inertia` automatically publishes this configuration. Error pages can be customized per status code in `app/Config/Inertia.php` via `$errorPages`.
 
+## Page Component Existence Checks
+
+To prevent blank screens when a frontend component is missing or mistyped, configure the `$pages` array in `app/Config/Inertia.php`:
+
+```php
+public array $pages = [
+    'ensure_page_exists' => true,
+    'pages' => [
+        resource_path('js/Pages'),
+    ],
+    'extensions' => ['vue', 'jsx', 'tsx', 'svelte', 'js', 'ts'],
+    'error' => 'error',
+];
+```
+
+When `ensure_page_exists` is enabled and a component cannot be found on disk, `Inertia::render()` throws `CodeIgniter\Exceptions\PageNotFoundException`, which `InertiaExceptionHandler` intercepts and renders as a 404 Inertia error component (`error` or `errors/404`).
+
+### Testing Component Existence
+
+You can also enforce page component verification during test assertions via `$testing`:
+
+```php
+public array $testing = [
+    'ensure_page_exists' => true,
+    'page_paths' => [],
+];
+```
+
+In feature tests, `$page->component('Dashboard')` verifies that the `Dashboard` component file exists on disk, failing the test if the file is absent.
+
 ## Documentation
 
 For full guides on Inertia v3 protocol features (lazy, deferred, and partial props), history encryption, exception handling, and Vite configuration, visit https://lipex-org.github.io/jengophp.com/packages/inertia.

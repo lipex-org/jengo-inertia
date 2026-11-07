@@ -13,6 +13,7 @@
 namespace Jengo\Inertia;
 
 use Closure;
+use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Jengo\Base\Container\Container;
@@ -36,9 +37,31 @@ class ResponseFactory
     protected $sharedKeys = [];
 
     /**
+     * @var Config\Inertia|null
+     */
+    protected ?Config\Inertia $config = null;
+
+    /**
      * @var Closure|string|null
      */
     protected $version;
+
+    public function setConfig(Config\Inertia $config): self
+    {
+        $this->config = $config;
+
+        return $this;
+    }
+
+    public function getConfig(): Config\Inertia
+    {
+        return $this->config ?? config('Inertia') ?? new Config\Inertia();
+    }
+
+    protected const array SYSTEM_PROP_KEYS = [
+        'errors',
+        'flash'
+    ];
 
     /**
      * @param array<string, mixed>|string $key
@@ -46,6 +69,7 @@ class ResponseFactory
      *
      * @psalm-api
      */
+
     public function share(string|array $key, $value = null): void
     {
         if (is_array($key)) {
@@ -122,22 +146,99 @@ class ResponseFactory
      */
     public function render(string $component, array $props = []): ResponseInterface
     {
+        $this->validateUserProps($props);
+
+        /** @var Config\Inertia $config */
+        $config = $this->getConfig();
+
+        if (!empty($config->pages['ensure_page_exists']) && ! $this->pageExists($component)) {
+            throw PageNotFoundException::forPageNotFound(
+                "Inertia page component [{$component}] not found on disk."
+            );
+        }
+
         // resolve errors and flashdata
         $this->withValidationErrors()->withFlashData();
 
-        $allProps = array_merge($this->sharedProps, $props);
+        return (new Response($component, array_merge($this->sharedProps, $props), $this->getVersion()))
+            ->withSharedKeys($this->sharedKeys)->getResponse();
+    }
 
-        $systemKeys = ['errors', 'flash'];
-        // check for any intersection and throw an exception for overwritten props
-        $propsKeys = array_keys($props);
-        $intersection = array_intersect($systemKeys, $propsKeys);
+    /**
+     * Check if an Inertia page component exists on disk.
+     *
+     * @param string $component Component name (e.g. 'Users/Index' or 'Home')
+     * @param array<int, string>|null $customPaths Optional paths override
+     * @return bool
+     */
+    public function pageExists(string $component, ?array $customPaths = null): bool
+    {
+        /** @var Config\Inertia $config */
+        $config = $this->getConfig();
 
-        if (!empty($intersection)) {
-            throw new \InvalidArgumentException('The following props are overwriting system props: `[' . implode(',', $intersection) . ']`. Choose different keys for these props to avoid this error.');
+        $paths = $customPaths ?? (array) ($config->pages['pages'] ?? []);
+        $extensions = (array) ($config->pages['extensions'] ?? ['vue', 'jsx', 'tsx', 'svelte', 'js', 'ts']);
+
+        // Normalize component name and directory separators
+        $cleanComponent = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, trim($component));
+        $cleanComponent = ltrim($cleanComponent, DIRECTORY_SEPARATOR);
+
+        if ($cleanComponent === '') {
+            return false;
         }
 
-        return (new Response($component, $allProps, $this->getVersion()))
-            ->withSharedKeys($this->sharedKeys)->getResponse();
+        // Derive component variants: e.g. "users/index" -> "Users/Index"
+        $parts = explode(DIRECTORY_SEPARATOR, $cleanComponent);
+        $pascalParts = array_map('ucfirst', $parts);
+        $pascalComponent = implode(DIRECTORY_SEPARATOR, $pascalParts);
+
+        $variants = array_unique([
+            $cleanComponent,
+            $pascalComponent,
+        ]);
+
+        foreach ($paths as $basePath) {
+            $base = rtrim($basePath, '\\/');
+
+            if (!str_starts_with($base, '/') && !preg_match('/^[A-Za-z]:[\\\\\/]/', $base)) {
+                $root = defined('ROOTPATH') ? rtrim(ROOTPATH, '\\/') : getcwd();
+                $base = $root . DIRECTORY_SEPARATOR . $base;
+            }
+
+            if (!is_dir($base)) {
+                continue;
+            }
+
+            foreach ($variants as $variant) {
+                // 1. Direct file match (if variant already includes extension)
+                $directPath = $base . DIRECTORY_SEPARATOR . $variant;
+                if (is_file($directPath)) {
+                    return true;
+                }
+
+                // 2. Extension match (e.g. Component.vue, Component.jsx)
+                foreach ($extensions as $ext) {
+                    $ext = ltrim($ext, '.');
+                    $filePath = $base . DIRECTORY_SEPARATOR . $variant . '.' . $ext;
+                    if (is_file($filePath)) {
+                        return true;
+                    }
+
+                    // 3. Index file within component folder (e.g. Users -> Users/Index.vue, Users/index.tsx)
+                    $indexPath = $base . DIRECTORY_SEPARATOR . $variant . DIRECTORY_SEPARATOR . 'index.' . $ext;
+                    if (is_file($indexPath)) {
+                        return true;
+                    }
+
+                    $indexUpperPath = $base . DIRECTORY_SEPARATOR . $variant . DIRECTORY_SEPARATOR . 'Index.' . $ext;
+                    if (is_file($indexUpperPath)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     public function lazy(Closure $callback): Props\Lazy
@@ -282,5 +383,13 @@ class ResponseFactory
         $this->sharedKeys = array_unique(array_merge($this->sharedKeys, ["flash"]));
 
         return $this;
+    }
+
+    protected function validateUserProps(array $props): void {
+        $intersection = array_intersect(self::SYSTEM_PROP_KEYS, array_keys($props));
+
+        if (!empty($intersection)) {
+            throw new \InvalidArgumentException('The following props are overwriting system props: `[' . implode(',', $intersection) . ']`. Choose different keys for these props to avoid this error.');
+        }
     }
 }

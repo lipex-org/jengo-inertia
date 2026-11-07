@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Jengo\Inertia\Testing;
 
+use Jengo\Inertia\Config\Services;
 use PHPUnit\Framework\Assert as PHPUnit;
 
 final class AssertableInertia
@@ -31,6 +32,22 @@ final class AssertableInertia
             PHPUnit::assertSame($value, $this->component, "Expected Inertia component to be [{$value}], got [{$this->component}] instead.");
         } else {
             PHPUnit::assertStringContainsString($value, $this->component, "Expected Inertia component to contain [{$value}], got [{$this->component}] instead.");
+        }
+
+        $inertia = Services::inertia();
+        /** @var \Jengo\Inertia\Config\Inertia|null $config */
+        $config = $inertia?->getConfig() ?? config('Inertia');
+
+        if (!empty($config?->testing['ensure_page_exists'])) {
+            $pagePaths = !empty($config->testing['page_paths'])
+                ? (array) $config->testing['page_paths']
+                : (array) ($config->pages['pages'] ?? []);
+
+            $exists = Services::inertia()->pageExists($this->component, $pagePaths);
+
+            if (! $exists) {
+                PHPUnit::fail("Inertia page component file [{$this->component}] does not exist on disk.");
+            }
         }
 
         return $this;
@@ -305,7 +322,7 @@ final class AssertableInertia
         }
 
         $allKeys = array_keys($this->props);
-        $diff = array_diff($allKeys, array_merge($this->interactedKeys, ['errors']));
+        $diff = array_diff($allKeys, array_merge($this->interactedKeys, ['errors', 'flash']));
 
         if (!empty($diff)) {
             PHPUnit::fail(

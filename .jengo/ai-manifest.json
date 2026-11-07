@@ -28,7 +28,8 @@
         "prepend": "prepend(mixed $value): Mergeable (Prepend mergeable prop)",
         "deepMerge": "deepMerge(mixed $value): Mergeable (Deep merge object/array prop)",
         "always": "always(mixed $value): Always (Always include prop even on partial reload)",
-        "disableSsr": "disableSsr(mixed $disable = true): void (Disable SSR rendering for test environments)"
+        "disableSsr": "disableSsr(mixed $disable = true): void (Disable SSR rendering for test environments)",
+        "pageExists": "pageExists(string $component, ?array $customPaths = null): bool (Check if a component exists on disk)"
       }
     }
   ],
@@ -56,7 +57,8 @@
         "ssrUrl": "string SSR server endpoint URL",
         "filterAlias": "string filter alias for Inertia middleware",
         "errorPages": "array<int|string, string> mapping of HTTP status codes to Inertia error components",
-        "pages": "array<string|int, string> general Inertia page components mapping",
+        "pages": "array<string, mixed> Inertia page components configuration (ensure_page_exists, pages, extensions, error)",
+        "testing": "array<string, mixed> Inertia testing configuration (ensure_page_exists, page_paths)",
         "showDebugInDevelopment": "bool whether to display CI4 HTML debug trace in development instead of Inertia error page"
       },
       "methods": {

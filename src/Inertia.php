@@ -36,6 +36,7 @@ use Jengo\Inertia\Config\Services;
  * @method static Props\Always                       always(mixed $value)
  * @method static ResponseFactory                    flash(array|string $data, ?string $value = null)
  * @method static void                               disableSsr(mixed $disable = true)
+ * @method static bool                               pageExists(string $component, ?array $customPaths = null)
  *
  * @see ResponseFactory
  */

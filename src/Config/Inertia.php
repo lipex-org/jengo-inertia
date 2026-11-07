@@ -49,12 +49,25 @@ class Inertia extends BaseConfig
     ];
 
     /**
-     * Default Inertia page component names.
+     * Inertia page component configuration.
      *
-     * @var array<string|int, string>
+     * @var array<string, mixed>
      */
     public array $pages = [
+        'ensure_page_exists' => false,
+        'pages' => [],
+        'extensions' => ['vue', 'jsx', 'tsx', 'svelte', 'js', 'ts'],
         'error' => 'error',
+    ];
+
+    /**
+     * Testing specific configurations for Inertia assertions.
+     *
+     * @var array<string, mixed>
+     */
+    public array $testing = [
+        'ensure_page_exists' => false,
+        'page_paths' => [],
     ];
 
     /**
@@ -63,6 +76,19 @@ class Inertia extends BaseConfig
      * with detailed exception info passed in the props if display_errors is on.
      */
     public bool $showDebugInDevelopment = false;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        if (empty($this->pages['pages'])) {
+            $this->pages['pages'] = [
+                function_exists('resource_path') ? resource_path('js/inertia/pages') : (defined('RESOURCEPATH') ? RESOURCEPATH . 'js/inertia/pages' : 'resources/js/inertia/pages'),
+                function_exists('resource_path') ? resource_path('js/Pages') : (defined('RESOURCEPATH') ? RESOURCEPATH . 'js/Pages' : 'resources/js/Pages'),
+                function_exists('resource_path') ? resource_path('js/pages') : (defined('RESOURCEPATH') ? RESOURCEPATH . 'js/pages' : 'resources/js/pages'),
+            ];
+        }
+    }
 
     /**
      * Resolve the Inertia component name for a given HTTP status code.
