@@ -201,4 +201,45 @@ class ResponseFactoryTest extends TestCase
         $this->assertInstanceOf(Mergeable::class, Inertia::prepend(['b']));
         $this->assertInstanceOf(Mergeable::class, Inertia::deepMerge(['c']));
     }
+
+    public function testRenderResolvesValidationErrorsAndFlashData(): void
+    {
+        $this->createRequest('http://example.com/test', ['X-Inertia' => 'true']);
+
+        session()->setFlashdata('errors', ['email' => 'Invalid email address']);
+        session()->setFlashdata('status', 'Profile saved successfully');
+
+        $response = $this->factory->render('Dashboard', ['user' => 'John']);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $shared = $this->factory->getShared(null);
+        $this->assertArrayHasKey('errors', $shared);
+        $this->assertArrayHasKey('flash', $shared);
+        $this->assertSame(['email' => 'Invalid email address'], $shared['errors']);
+        $this->assertSame(['status' => 'Profile saved successfully'], $shared['flash']);
+    }
+
+    public function testRenderHandlesErrorBagHeader(): void
+    {
+        $this->createRequest('http://example.com/test', [
+            'X-Inertia' => 'true',
+            'x-inertia-error-bag' => 'loginForm',
+        ]);
+
+        session()->setFlashdata('errors', ['password' => 'Too short']);
+
+        $this->factory->render('Login', []);
+
+        $shared = $this->factory->getShared(null);
+        $this->assertArrayHasKey('errors', $shared);
+        $this->assertSame(['loginForm' => ['password' => 'Too short']], $shared['errors']);
+    }
+
+    public function testRenderThrowsExceptionWhenOverwritingSystemProps(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('The following props are overwriting system props: `[errors]`. Choose different keys for these props to avoid this error.');
+
+        $this->factory->render('Dashboard', ['errors' => ['custom' => 'error']]);
+    }
 }

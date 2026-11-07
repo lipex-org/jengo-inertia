@@ -114,18 +114,27 @@ class InertiaInstallerTest extends TestCase
         $this->assertSame('svelte', $method->invoke($installer));
     }
 
-    public function testWantsAuthWithCliOption(): void
+    public function testResolveAuthTypeWithCliOption(): void
     {
         $installer = new InertiaInstaller();
         $ref = new ReflectionClass($installer);
-        $method = $ref->getMethod('wantsAuth');
+        $method = $ref->getMethod('resolveAuthType');
         $method->setAccessible(true);
 
+        $this->setCliOptions(['auth' => 'jengo']);
+        $this->assertSame('jengo', $method->invoke($installer));
+
+        $this->setCliOptions(['auth' => 'shield']);
+        $this->assertSame('shield', $method->invoke($installer));
+
+        $this->setCliOptions(['auth' => 'none']);
+        $this->assertSame('none', $method->invoke($installer));
+
         $this->setCliOptions(['auth' => 'yes']);
-        $this->assertTrue($method->invoke($installer));
+        $this->assertContains($method->invoke($installer), ['jengo', 'shield']);
 
         $this->setCliOptions(['auth' => 'no']);
-        $this->assertFalse($method->invoke($installer));
+        $this->assertSame('none', $method->invoke($installer));
     }
 
     public function testWantsToUpdateHomeControllerWithCliOption(): void
@@ -181,7 +190,7 @@ PHP;
         $method->invoke($installer);
 
         $updatedContent = file_get_contents($filtersPath);
-        $this->assertStringContainsString("'inertia' => 'App\\Filters\\HandleInertiaRequests'", $updatedContent);
+        $this->assertStringContainsString("'inertia' => \\App\\Filters\\HandleInertiaRequests::class", $updatedContent);
         $this->assertStringContainsString("'inertia'", $updatedContent);
 
         // Restore original content or delete
@@ -336,7 +345,9 @@ TS;
     public function testPublishExceptionsConfig(): void
     {
         $exceptionsPath = APPPATH . 'Config/Exceptions.php';
-        $originalContent = file_exists($exceptionsPath) ? file_get_contents($exceptionsPath) : null;
+        $inertiaConfigPath = APPPATH . 'Config/Inertia.php';
+        $originalExceptionsContent = file_exists($exceptionsPath) ? file_get_contents($exceptionsPath) : null;
+        $originalInertiaContent = file_exists($inertiaConfigPath) ? file_get_contents($inertiaConfigPath) : null;
 
         $installer = new InertiaInstaller();
         $ref = new ReflectionClass($installer);
@@ -351,10 +362,16 @@ TS;
         $this->assertStringContainsString('use Jengo\Inertia\Debug\InertiaExceptionHandler;', $content);
         $this->assertStringContainsString('return new InertiaExceptionHandler($this);', $content);
 
-        if ($originalContent !== null) {
-            file_put_contents($exceptionsPath, $originalContent);
+        if ($originalExceptionsContent !== null) {
+            file_put_contents($exceptionsPath, $originalExceptionsContent);
         } else {
             @unlink($exceptionsPath);
+        }
+
+        if ($originalInertiaContent !== null) {
+            file_put_contents($inertiaConfigPath, $originalInertiaContent);
+        } else {
+            @unlink($inertiaConfigPath);
         }
     }
 }

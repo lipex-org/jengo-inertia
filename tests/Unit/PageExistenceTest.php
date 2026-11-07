@@ -36,6 +36,8 @@ class PageExistenceTest extends TestCase
     {
         // Cleanup temp directory
         $this->removeDirectory($this->tempPagesDir);
+        Services::resetSingle('inertia');
+        Services::resetSingle('request');
         parent::tearDown();
     }
 

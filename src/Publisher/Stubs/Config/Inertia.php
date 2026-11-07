@@ -34,7 +34,7 @@ class Inertia extends BaseInertia
      * @var array<string, mixed>
      */
     public array $testing = [
-        'ensure_page_exists' => true,
+        'ensure_page_exists' => false,
         'page_paths' => [],
     ];
 

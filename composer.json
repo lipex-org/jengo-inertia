@@ -1,11 +1,16 @@
 {
   "name": "jengo/inertia",
-  "description": "The Codeigniter 4 adapter for inertia.js forked from fabithub/inertia-ci4",
+  "description": "The official CodeIgniter 4 adapter for Inertia.js v3.",
+  "homepage": "https://lipex-org.github.io/jengophp.com/packages/inertia",
+  "support": {
+    "issues": "https://github.com/lipex-org/jengo-inertia/issues",
+    "source": "https://github.com/lipex-org/jengo-inertia"
+  },
   "license": "MIT",
   "type": "library",
   "authors": [
     {
-      "name": "Ian Oching",
+      "name": "Ian Ochieng",
       "email": "ochiengian383@gmail.com"
     }
   ],
