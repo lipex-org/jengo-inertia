@@ -49,62 +49,31 @@ class MiddlewareTest extends TestCase
         return $request;
     }
 
-    public function testWithShareResolvesErrorsAndFlash(): void
+    public function testWithShareReturnsEmptyByDefault(): void
     {
-        session()->setFlashdata('errors', ['email' => 'Invalid email']);
-        session()->setFlashdata('info', 'Welcome back');
-
         $request = $this->createRequest();
-        $share = $this->middleware->withShare($request);
-
-        $this->assertArrayHasKey('errors', $share);
-        $this->assertArrayHasKey('flash', $share);
-        $this->assertInstanceOf(Always::class, $share['errors']);
-        $this->assertInstanceOf(Always::class, $share['flash']);
-
-        $errorsResolved = $share['errors']->resolve();
-        $this->assertInstanceOf(\stdClass::class, $errorsResolved);
-        $this->assertSame('Invalid email', $errorsResolved->email);
-
-        $flashResolved = $share['flash']->resolve();
-        $this->assertArrayHasKey('info', $flashResolved);
-    }
-
-    public function testWithShareHandlesErrorBag(): void
-    {
-        session()->setFlashdata('errors', ['password' => 'Too short']);
-
-        $request = $this->createRequest('GET', 'http://example.com/test', [
-            'x-inertia-error-bag' => 'loginForm',
-        ]);
-
-        $share = $this->middleware->withShare($request);
-        $errors = $share['errors']->resolve();
-
-        $this->assertObjectHasProperty('loginForm', $errors);
-        $this->assertSame(['password' => 'Too short'], $errors->loginForm);
-    }
-
-    public function testWithShareReturnsEmptyObjectWhenNoErrors(): void
-    {
-        session()->remove('errors');
-        service('validation')->reset();
-
-        $request = $this->createRequest();
-        $share = $this->middleware->withShare($request);
-        $errors = $share['errors']->resolve();
-
-        $this->assertEquals((object) [], $errors);
+        $this->assertSame([], $this->middleware->withShare($request));
     }
 
     public function testBeforeSharesDataWithInertia(): void
     {
+        $customMiddleware = new class extends Middleware {
+            public function withShare(\CodeIgniter\HTTP\RequestInterface $request): array
+            {
+                return [
+                    'app_name' => 'Jengo App',
+                    'auth'     => ['user' => null],
+                ];
+            }
+        };
+
         $request = $this->createRequest();
-        $this->middleware->before($request);
+        $customMiddleware->before($request);
 
         $shared = Inertia::getShared(null);
-        $this->assertArrayHasKey('errors', $shared);
-        $this->assertArrayHasKey('flash', $shared);
+        $this->assertArrayHasKey('app_name', $shared);
+        $this->assertSame('Jengo App', $shared['app_name']);
+        $this->assertSame(['user' => null], $shared['auth']);
     }
 
     public function testBeforeUpdatesCiPreviousUrlOnInertiaGetRequest(): void
