@@ -54,7 +54,7 @@ class Inertia extends BaseConfig
      * @var array<string, mixed>
      */
     public array $pages = [
-        'ensure_page_exists' => false,
+        'ensure_page_exists' => true,
         'pages' => [],
         'extensions' => ['vue', 'jsx', 'tsx', 'svelte', 'js', 'ts'],
         'error' => 'error',
