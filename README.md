@@ -34,7 +34,7 @@
 
 ## Protocol Support
 
-`jengo/inertia` implements the complete **Inertia.js v3** protocol (and maintains backwards compatibility with Inertia v2 client-side adapters):
+`jengo/inertia` implements the complete **Inertia.js v3** protocol:
 
 | Protocol Feature | Supported | Description |
 | :--- | :---: | :--- |
