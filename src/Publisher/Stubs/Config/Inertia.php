@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * This file is part of Inertia.js Codeigniter 4.
+ *
+ * (c) 2023 Fab IT Hub <hello@fabithub.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
 namespace Config;
 
 use Jengo\Inertia\Config\Inertia as BaseInertia;
@@ -12,9 +21,19 @@ class Inertia extends BaseInertia
     public string $rootView = 'app';
 
     /**
+     * Wire protocol version: '3.0' (default) or '2.0'.
+     */
+    public string $protocolVersion = '3.0';
+
+    /**
      * Determines the current asset version.
      */
-    public string|null $version = null;
+    public ?string $version = null;
+
+    /**
+     * Wrap 64-bit integers outside JS safe range (-2^53+1 to 2^53-1) as {"$bigint": "<digits>"}.
+     */
+    public bool $preserveBigIntegers = false;
 
     /**
      * Inertia page component configuration.
@@ -22,7 +41,7 @@ class Inertia extends BaseInertia
      * @var array<string, mixed>
      */
     public array $pages = [
-        'ensure_page_exists' => true,
+        'ensure_page_exists' => false,
         'pages' => [],
         'extensions' => ['vue', 'jsx', 'tsx', 'svelte', 'js', 'ts'],
         'error' => 'error',

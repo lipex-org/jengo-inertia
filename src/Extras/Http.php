@@ -4,7 +4,6 @@
  * This file is part of Inertia.js Codeigniter 4.
  *
  * (c) 2023 Fab IT Hub <hello@fabithub.com>
- * (c) 2026 JengoPHP <hello@jengophp.com>
  *
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
@@ -13,21 +12,25 @@
 namespace Jengo\Inertia\Extras;
 
 use CodeIgniter\HTTP\RequestInterface;
+use Inertia\Protocol\Support\InertiaHeaders;
 
+/**
+ * @deprecated Use \Inertia\Protocol\Support\InertiaHeaders or \Inertia\Protocol\Contracts\RequestInterface directly. Will be removed in the official v1.0.0 release.
+ */
 class Http
 {
     public static function isInertiaRequest(?RequestInterface $request = null): bool
     {
         $request ??= request();
 
-        return $request->hasHeader('X-Inertia');
+        return $request->hasHeader(InertiaHeaders::HEADER_INERTIA);
     }
 
     public static function isPartialReload(?RequestInterface $request = null): bool
     {
         $request ??= request();
 
-        return self::isInertiaRequest($request) && $request->hasHeader('X-Inertia-Partial-Component');
+        return self::isInertiaRequest($request) && $request->hasHeader(InertiaHeaders::HEADER_PARTIAL_COMPONENT);
     }
 
     /**
@@ -35,7 +38,8 @@ class Http
      */
     public static function getPartialData(?RequestInterface $request = null): array
     {
-        $value = self::getHeaderValue('X-Inertia-Partial-Data', '', $request);
+        $value = self::getHeaderValue(InertiaHeaders::HEADER_PARTIAL_DATA, '', $request);
+
         return array_filter(explode(',', is_array($value) ? implode(',', $value) : $value));
     }
 
@@ -44,7 +48,8 @@ class Http
      */
     public static function getPartialExcept(?RequestInterface $request = null): array
     {
-        $value = self::getHeaderValue('X-Inertia-Partial-Except', '', $request);
+        $value = self::getHeaderValue(InertiaHeaders::HEADER_PARTIAL_EXCEPT, '', $request);
+
         return array_filter(explode(',', is_array($value) ? implode(',', $value) : $value));
     }
 
@@ -53,7 +58,8 @@ class Http
      */
     public static function getResetProps(?RequestInterface $request = null): array
     {
-        $value = self::getHeaderValue('X-Inertia-Reset', '', $request);
+        $value = self::getHeaderValue(InertiaHeaders::HEADER_RESET, '', $request);
+
         return array_filter(explode(',', is_array($value) ? implode(',', $value) : $value));
     }
 
@@ -62,20 +68,19 @@ class Http
      */
     public static function getExceptOnceProps(?RequestInterface $request = null): array
     {
-        $value = self::getHeaderValue('X-Inertia-Except-Once-Props', '', $request);
+        $value = self::getHeaderValue(InertiaHeaders::HEADER_EXCEPT_ONCE_PROPS, '', $request);
+
         return array_filter(explode(',', is_array($value) ? implode(',', $value) : $value));
     }
 
-    /**
-     * @return list<list<string>|string>|string
-     * @psalm-return array<int|string, array<string, string>|string>|string
-     */
-    public static function getHeaderValue(string $header, string $default = '', ?RequestInterface $request = null): array |string
+    public static function getHeaderValue(string $key, mixed $default = '', ?RequestInterface $request = null): mixed
     {
         $request ??= request();
 
-        if ($request->hasHeader($header)) {
-            return $request->header($header)->getValue();
+        if ($request->hasHeader($key)) {
+            $value = $request->getHeaderLine($key);
+
+            return '' !== $value ? $value : $default;
         }
 
         return $default;

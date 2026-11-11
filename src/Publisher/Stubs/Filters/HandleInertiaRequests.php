@@ -1,16 +1,23 @@
 <?php
 
+/**
+ * This file is part of Inertia.js Codeigniter 4.
+ *
+ * (c) 2023 Fab IT Hub <hello@fabithub.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
 namespace App\Filters;
 
 use CodeIgniter\HTTP\RequestInterface;
 use Jengo\Inertia\Middleware;
+
 use function Jengo\Base\Support\arr;
 
 class HandleInertiaRequests extends Middleware
 {
-    /**
-     * @return array
-     */
     public function withShare(RequestInterface $request): array
     {
         return array_merge(parent::withShare($request), [
@@ -22,9 +29,9 @@ class HandleInertiaRequests extends Middleware
                         ->only([
                             'id',
                             'username',
-                            'email'
+                            'email',
                         ])->asNullWhenEmpty()
-                    : null
+                    : null,
             ],
         ]);
     }

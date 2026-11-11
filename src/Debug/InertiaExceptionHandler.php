@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * This file is part of Inertia.js Codeigniter 4.
  *
- * (c) 2026 JengoPHP <hello@jengophp.com>
+ * (c) 2023 Fab IT Hub <hello@fabithub.com>
  *
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
@@ -26,11 +26,12 @@ use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\View\View;
 use Config\Exceptions as ExceptionsConfig;
 use Config\Paths;
+use Inertia\Protocol\Support\InertiaHeaders;
 use Jengo\Inertia\Config\Inertia as InertiaConfig;
-use Jengo\Inertia\Extras\Http;
 use Jengo\Inertia\Inertia;
 use Jengo\Inertia\Response;
 use Throwable;
+
 use function Jengo\Base\vite_version;
 
 /**
@@ -77,7 +78,7 @@ class InertiaExceptionHandler extends BaseExceptionHandler implements ExceptionH
                 $response->setStatusCode($statusCode);
             }
 
-            if (! headers_sent()) {
+            if (!headers_sent()) {
                 header(
                     sprintf(
                         'HTTP/%s %s %s',
@@ -91,7 +92,7 @@ class InertiaExceptionHandler extends BaseExceptionHandler implements ExceptionH
             }
 
             // 1. Non-HTML and non-Inertia requests (standard API endpoints)
-            if (! str_contains($request->getHeaderLine('accept'), 'text/html') && ! Http::isInertiaRequest($request)) {
+            if (!str_contains($request->getHeaderLine('accept'), 'text/html') && !$request->hasHeader(InertiaHeaders::HEADER_INERTIA)) {
                 $data = $this->isDisplayErrorsEnabled()
                     ? $this->collectVars($exception, $statusCode)
                     : '';
@@ -120,7 +121,7 @@ class InertiaExceptionHandler extends BaseExceptionHandler implements ExceptionH
                 && $this->isDisplayErrorsEnabled()
                 && $inertiaConfig->showDebugInDevelopment;
 
-            if ($component !== null && ! $shouldShowDebug) {
+            if ($component !== null && !$shouldShowDebug) {
                 $this->renderInertia($component, $exception, $request, $statusCode, $inertiaConfig);
 
                 // @codeCoverageIgnoreStart

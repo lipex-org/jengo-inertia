@@ -1,5 +1,6 @@
 <?php
 use Jengo\Inertia\Inertia;
+
 use function Jengo\Base\vite_tags;
 
 ?>

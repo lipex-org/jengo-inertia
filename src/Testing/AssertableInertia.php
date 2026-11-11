@@ -2,8 +2,19 @@
 
 declare(strict_types=1);
 
+/**
+ * This file is part of Inertia.js Codeigniter 4.
+ *
+ * (c) 2023 Fab IT Hub <hello@fabithub.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
 namespace Jengo\Inertia\Testing;
 
+use Closure;
+use Jengo\Inertia\Config\Inertia;
 use Jengo\Inertia\Config\Services;
 use PHPUnit\Framework\Assert as PHPUnit;
 
@@ -19,7 +30,7 @@ final class AssertableInertia
         public readonly ?string $version = null,
         public readonly array $deferredProps = [],
         private ?array $flashData = null,
-        private ?\Closure $requestRunner = null
+        private ?Closure $requestRunner = null,
     ) {
     }
 
@@ -35,7 +46,7 @@ final class AssertableInertia
         }
 
         $inertia = Services::inertia();
-        /** @var \Jengo\Inertia\Config\Inertia|null $config */
+        /** @var Inertia|null $config */
         $config = $inertia?->getConfig() ?? config('Inertia');
 
         if (!empty($config?->testing['ensure_page_exists'])) {
@@ -45,7 +56,7 @@ final class AssertableInertia
 
             $exists = Services::inertia()->pageExists($this->component, $pagePaths);
 
-            if (! $exists) {
+            if (!$exists) {
                 PHPUnit::fail("Inertia page component file [{$this->component}] does not exist on disk.");
             }
         }
@@ -78,7 +89,7 @@ final class AssertableInertia
 
         if ($count !== null) {
             PHPUnit::assertIsArray($actual, "Inertia prop [{$key}] is not an array.");
-            PHPUnit::assertCount($count, $actual, "Expected array count of [{$key}] to be [{$count}], got [" . count($actual) . "] instead.");
+            PHPUnit::assertCount($count, $actual, "Expected array count of [{$key}] to be [{$count}], got [" . count($actual) . '] instead.');
         }
 
         if ($callback !== null) {
@@ -96,7 +107,7 @@ final class AssertableInertia
                 $this->version,
                 $this->deferredProps,
                 $this->flashData,
-                $this->requestRunner
+                $this->requestRunner,
             );
             $callback($scope);
             $scope->validateInteracted();
@@ -115,7 +126,7 @@ final class AssertableInertia
 
         $actual = $this->dotGet($this->props, $key);
         PHPUnit::assertIsArray($actual, "Inertia prop [{$key}] is not an array.");
-        PHPUnit::assertCount($expectedCount, $actual, "Expected array count of [{$key}] to be [{$expectedCount}], got [" . count($actual) . "] instead.");
+        PHPUnit::assertCount($expectedCount, $actual, "Expected array count of [{$key}] to be [{$expectedCount}], got [" . count($actual) . '] instead.');
 
         return $this;
     }
@@ -154,13 +165,14 @@ final class AssertableInertia
     public function etc(): self
     {
         $this->interactedAll = true;
+
         return $this;
     }
 
     /**
      * Run partial reload for the specified keys.
      */
-    public function reloadOnly(string|array $keys, callable $callback): self
+    public function reloadOnly(array|string $keys, callable $callback): self
     {
         PHPUnit::assertNotNull($this->requestRunner, 'Cannot perform partial reload without request runner.');
 
@@ -180,7 +192,7 @@ final class AssertableInertia
             $pageData['version'] !== null ? (string) $pageData['version'] : null,
             (array) ($pageData['deferredProps'] ?? []),
             $this->flashData,
-            $this->requestRunner
+            $this->requestRunner,
         );
 
         $callback($reloadScope);
@@ -192,7 +204,7 @@ final class AssertableInertia
     /**
      * Run partial reload excluding the specified keys.
      */
-    public function reloadExcept(string|array $keys, callable $callback): self
+    public function reloadExcept(array|string $keys, callable $callback): self
     {
         PHPUnit::assertNotNull($this->requestRunner, 'Cannot perform partial reload without request runner.');
 
@@ -212,7 +224,7 @@ final class AssertableInertia
             $pageData['version'] !== null ? (string) $pageData['version'] : null,
             (array) ($pageData['deferredProps'] ?? []),
             $this->flashData,
-            $this->requestRunner
+            $this->requestRunner,
         );
 
         $callback($reloadScope);
@@ -243,6 +255,7 @@ final class AssertableInertia
 
         // Collect keys to reload
         $keys = [];
+
         foreach ($groups as $group) {
             if (isset($this->deferredProps[$group])) {
                 $keys = array_merge($keys, $this->deferredProps[$group]);
@@ -251,6 +264,7 @@ final class AssertableInertia
 
         if (empty($keys)) {
             $actualCallback($this);
+
             return $this;
         }
 
@@ -269,7 +283,7 @@ final class AssertableInertia
             $pageData['version'] !== null ? (string) $pageData['version'] : null,
             (array) ($pageData['deferredProps'] ?? []),
             $this->flashData,
-            $this->requestRunner
+            $this->requestRunner,
         );
 
         $actualCallback($reloadScope);
@@ -327,9 +341,9 @@ final class AssertableInertia
         if (!empty($diff)) {
             PHPUnit::fail(
                 sprintf(
-                    "Inertia scope has unexpected properties: [%s]. Use etc() to ignore them.",
-                    implode(', ', $diff)
-                )
+                    'Inertia scope has unexpected properties: [%s]. Use etc() to ignore them.',
+                    implode(', ', $diff),
+                ),
             );
         }
     }

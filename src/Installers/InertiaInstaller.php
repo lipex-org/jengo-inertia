@@ -2,12 +2,23 @@
 
 declare(strict_types=1);
 
+/**
+ * This file is part of Inertia.js Codeigniter 4.
+ *
+ * (c) 2023 Fab IT Hub <hello@fabithub.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
 namespace Jengo\Inertia\Installers;
 
+use App\Filters\HandleInertiaRequests;
 use CodeIgniter\CLI\CLI;
 use Jengo\Base\Installers\Contracts\AbstractInstaller;
 use Jengo\Base\Tooling\Modifier\ClassModifier;
 use Jengo\Base\Traits\HasClientAssets;
+use Throwable;
 
 class InertiaInstaller extends AbstractInstaller
 {
@@ -49,6 +60,7 @@ class InertiaInstaller extends AbstractInstaller
 
         if (!$this->shouldRun()) {
             CLI::error('package.json not found. Please run "php spark jengo:install vite" first.');
+
             return;
         }
 
@@ -70,7 +82,7 @@ class InertiaInstaller extends AbstractInstaller
         $destView = $this->root . 'app/Views/app.php';
 
         if (!copy($sourceView, $destView)) {
-            CLI::error("Failed to copy view file.");
+            CLI::error('Failed to copy view file.');
         }
 
         // Publish Client Stubs
@@ -124,14 +136,14 @@ class InertiaInstaller extends AbstractInstaller
     private function whichFrameworkToUse(): string
     {
         $framework = CLI::getOption('framework');
-        if ($framework && in_array($framework, ['vue', 'react', 'svelte'])) {
+        if ($framework && in_array($framework, ['vue', 'react', 'svelte'], true)) {
             return $framework;
         }
 
         return CLI::prompt(
             'Which framework do you use?',
             ['vue', 'react', 'svelte'],
-            'in_list[vue,react,svelte]'
+            'in_list[vue,react,svelte]',
         );
     }
 
@@ -171,7 +183,7 @@ class InertiaInstaller extends AbstractInstaller
                 ],
                 'dev' => [
                     '@vitejs/plugin-react',
-                    '@types/react-dom'
+                    '@types/react-dom',
                 ],
             ],
             'svelte' => [
@@ -193,6 +205,7 @@ class InertiaInstaller extends AbstractInstaller
             $configFile = ROOTPATH . 'vite.config.js';
             if (!file_exists($configFile)) {
                 CLI::error('vite.config.ts/js not found. Skipping config update.');
+
                 return;
             }
         }
@@ -206,28 +219,28 @@ class InertiaInstaller extends AbstractInstaller
         };
 
         $pluginUsage = match ($this->framework) {
-            'vue' => "vue(),",
-            'react' => "react(),",
-            'svelte' => "svelte(),",
+            'vue' => 'vue(),',
+            'react' => 'react(),',
+            'svelte' => 'svelte(),',
         };
 
         // Add Import
         if (!str_contains($content, $pluginImport)) {
             $content = preg_replace(
                 "/(import .* from 'vite';)/",
-                "$1\n$pluginImport",
+                "$1\n{$pluginImport}",
                 $content,
-                1
+                1,
             );
         }
 
         // Add Plugin
         if (!str_contains($content, trim($pluginUsage, ','))) {
             $content = preg_replace(
-                "/(plugins:\s*\[)/",
-                "$1\n        $pluginUsage",
+                '/(plugins:\\s*\\[)/',
+                "$1\n        {$pluginUsage}",
                 $content,
-                1
+                1,
             );
         }
 
@@ -237,15 +250,14 @@ class InertiaInstaller extends AbstractInstaller
     private function updateHomeController(): void
     {
         $this->publish("{$this->stubsDir}/Controllers", 'app/Controllers');
-        CLI::write("Home Controller published.", 'green');
+        CLI::write('Home Controller published.', 'green');
     }
 
     private function publishFilters(): void
     {
         $this->publish("{$this->stubsDir}/Filters", 'app/Filters');
-        CLI::write("Inertia filter published.", 'green');
+        CLI::write('Inertia filter published.', 'green');
     }
-
 
     /**
      * Register the Inertia filter alias and add it to the global before/after filter lists
@@ -263,26 +275,28 @@ class InertiaInstaller extends AbstractInstaller
             $modifier = ClassModifier::fromFile($path);
 
             // 1. Add the filter alias: 'inertia' => \App\Filters\HandleInertiaRequests::class
-            $modifier->mutateArrayProperty('aliases', function (array $aliases) {
+            $modifier->mutateArrayProperty('aliases', static function (array $aliases) {
                 if (!isset($aliases['inertia'])) {
-                    $aliases['inertia'] = \App\Filters\HandleInertiaRequests::class;
+                    $aliases['inertia'] = HandleInertiaRequests::class;
                 }
+
                 return $aliases;
             });
 
             // 2. Add 'inertia' to globals['before'] and globals['after']
-            $modifier->mutateArrayProperty('globals', function (array $globals) {
+            $modifier->mutateArrayProperty('globals', static function (array $globals) {
                 if (!in_array('inertia', $globals['before'] ?? [], true)) {
                     $globals['before'][] = 'inertia';
                 }
                 if (!in_array('inertia', $globals['after'] ?? [], true)) {
                     $globals['after'][] = 'inertia';
                 }
+
                 return $globals;
             });
 
             $modifier->saveTo($path);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             CLI::write('[WARNING] Could not update Config/Filters.php automatically: ' . $e->getMessage());
             CLI::write('Please add the following to app/Config/Filters.php manually:');
             CLI::write("  \$aliases['inertia'] = \\App\\Filters\\HandleInertiaRequests::class;");
@@ -309,6 +323,7 @@ class InertiaInstaller extends AbstractInstaller
                         return 'jengo';
                     }
                 }
+
                 return 'shield';
             }
             if (in_array($auth, ['n', 'no', 'false', '0'], true)) {
@@ -336,7 +351,7 @@ class InertiaInstaller extends AbstractInstaller
         return CLI::prompt(
             'Which authentication provider do you want to use?',
             ['jengo', 'shield', 'none'],
-            'in_list[jengo,shield,none]'
+            'in_list[jengo,shield,none]',
         );
     }
 
@@ -366,12 +381,12 @@ class InertiaInstaller extends AbstractInstaller
             $dashboardRoute = <<<PHP
 
 
-// Jengo Inertia Dashboard Route
-\$routes->get('dashboard', function () {
-    return inertia('dashboard');
-}, ['filter' => ['{$filter}']]);
+                // Jengo Inertia Dashboard Route
+                \$routes->get('dashboard', function () {
+                    return inertia('dashboard');
+                }, ['filter' => ['{$filter}']]);
 
-PHP;
+                PHP;
 
             if (!str_contains($content, "get('dashboard'") && !str_contains($content, 'get("dashboard"')) {
                 $content .= $dashboardRoute;
@@ -381,6 +396,3 @@ PHP;
         }
     }
 }
-
-
-

@@ -4,7 +4,6 @@
  * This file is part of Inertia.js Codeigniter 4.
  *
  * (c) 2023 Fab IT Hub <hello@fabithub.com>
- * (c) 2026 JengoPHP <hello@jengophp.com>
  *
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
@@ -16,9 +15,15 @@ use Closure;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
+use Inertia\Protocol\PageObject;
+use Inertia\Protocol\ProtocolVersion;
+use Inertia\Protocol\Ssr\SsrGatewayInterface;
+use Inertia\Protocol\Support\Arr;
+use Inertia\Protocol\Support\InertiaHeaders;
+use InvalidArgumentException;
 use Jengo\Base\Container\Container;
-use Jengo\Inertia\Extras\Arr;
-use Jengo\Inertia\Extras\Http;
+use Jengo\Inertia\Config\Services;
+
 use function Jengo\Base\vite_version;
 
 /**
@@ -26,19 +31,21 @@ use function Jengo\Base\vite_version;
  */
 class ResponseFactory
 {
+    protected const array SYSTEM_PROP_KEYS = [
+        'errors',
+        'flash',
+    ];
+
     /**
      * @var array<string, mixed>
      */
     protected $sharedProps = [];
 
     /**
-     * @var array<string>
+     * @var list<string>
      */
     protected $sharedKeys = [];
 
-    /**
-     * @var Config\Inertia|null
-     */
     protected ?Config\Inertia $config = null;
 
     /**
@@ -58,19 +65,13 @@ class ResponseFactory
         return $this->config ?? config('Inertia') ?? new Config\Inertia();
     }
 
-    protected const array SYSTEM_PROP_KEYS = [
-        'errors',
-        'flash'
-    ];
-
     /**
      * @param array<string, mixed>|string $key
      * @param mixed                       $value
      *
      * @psalm-api
      */
-
-    public function share(string|array $key, $value = null): void
+    public function share(array|string $key, $value = null): void
     {
         if (is_array($key)) {
             $this->sharedProps = array_merge($this->sharedProps, $key);
@@ -98,7 +99,7 @@ class ResponseFactory
     }
 
     /**
-     * @return array<string>
+     * @return list<string>
      */
     public function getSharedKeys(): array
     {
@@ -151,25 +152,38 @@ class ResponseFactory
         /** @var Config\Inertia $config */
         $config = $this->getConfig();
 
-        if (!empty($config->pages['ensure_page_exists']) && ! $this->pageExists($component)) {
+        if (!empty($config->pages['ensure_page_exists']) && !$this->pageExists($component)) {
             throw PageNotFoundException::forPageNotFound(
-                "Inertia page component [{$component}] not found on disk."
+                "Inertia page component [{$component}] not found on disk.",
             );
         }
 
         // resolve errors and flashdata
         $this->withValidationErrors()->withFlashData();
 
-        return (new Response($component, array_merge($this->sharedProps, $props), $this->getVersion()))
-            ->withSharedKeys($this->sharedKeys)->getResponse();
+        $errors = $this->sharedProps['errors'] ?? [];
+        $flash = $this->sharedProps['flash'] ?? [];
+
+        // Exclude reserved errors and flash from user props to prevent ReservedPropException
+        $userSharedProps = $this->sharedProps;
+        unset($userSharedProps['errors'], $userSharedProps['flash']);
+
+        $userSharedKeys = array_values(array_filter($this->sharedKeys, static fn ($k) => !in_array($k, ['errors', 'flash'], true)));
+
+        return (new Response($component, array_merge($userSharedProps, $props), $this->getVersion()))
+            ->withSharedKeys($userSharedKeys)
+            ->withErrors($errors)
+            ->withFlash($flash)
+            ->withProtocolVersion($config->protocolVersion ?? '3.0')
+            ->preserveBigIntegers(!empty($config->preserveBigIntegers))
+            ->getResponse();
     }
 
     /**
      * Check if an Inertia page component exists on disk.
      *
-     * @param string $component Component name (e.g. 'Users/Index' or 'Home')
+     * @param string                  $component   Component name (e.g. 'Users/Index' or 'Home')
      * @param array<int, string>|null $customPaths Optional paths override
-     * @return bool
      */
     public function pageExists(string $component, ?array $customPaths = null): bool
     {
@@ -241,42 +255,112 @@ class ResponseFactory
         return false;
     }
 
-    public function lazy(Closure $callback): Props\Lazy
+    public function lazy(mixed $callback): Props\Lazy
     {
-        $diCallback = static fn() => Container::getInstance()->call($callback);
-        return new Props\Lazy($diCallback);
+        $resolved = $callback instanceof Closure
+            ? static fn () => Container::getInstance()->call($callback)
+            : $callback;
+
+        return new Props\Lazy($resolved);
     }
 
-    public function defer(Closure $callback, string $group = 'default'): Props\Defer
+    public function optional(mixed $callback): Props\Optional
     {
-        $diCallback = static fn() => Container::getInstance()->call($callback);
-        return new Props\Defer($group, $diCallback);
+        $resolved = $callback instanceof Closure
+            ? static fn () => Container::getInstance()->call($callback)
+            : $callback;
+
+        return new Props\Optional($resolved);
     }
 
-    public function once(Closure $callback): Props\Once
+    public function defer(mixed $callback, string $group = 'default', bool $rescue = false): Props\Defer
     {
-        $diCallback = static fn() => Container::getInstance()->call($callback);
-        return new Props\Once($diCallback);
+        $resolved = $callback instanceof Closure
+            ? static fn () => Container::getInstance()->call($callback)
+            : $callback;
+
+        return new Props\Defer($group, $resolved, $rescue);
     }
 
-    public function merge(mixed $value): Props\Mergeable
+    public function once(mixed $callback, ?int $expiresAt = null): Props\Once
     {
-        return new Props\Mergeable($value);
+        $resolved = $callback instanceof Closure
+            ? static fn () => Container::getInstance()->call($callback)
+            : $callback;
+
+        return new Props\Once($resolved, $expiresAt);
     }
 
-    public function prepend(mixed $value): Props\Mergeable
+    public function merge(mixed $value, ?string $matchOn = null): Props\Mergeable
     {
-        return new Props\Mergeable($value, prepend: true);
+        return new Props\Mergeable(value: $value, deep: false, prepend: false, matchOn: $matchOn);
     }
 
-    public function deepMerge(mixed $value): Props\Mergeable
+    public function prepend(mixed $value, ?string $matchOn = null): Props\Mergeable
     {
-        return new Props\Mergeable($value, deep: true);
+        return new Props\Mergeable(value: $value, deep: false, prepend: true, matchOn: $matchOn);
+    }
+
+    public function deepMerge(mixed $value, ?string $matchOn = null): Props\Mergeable
+    {
+        return new Props\Mergeable(value: $value, deep: true, prepend: false, matchOn: $matchOn);
     }
 
     public function always(mixed $value): Props\Always
     {
         return new Props\Always($value);
+    }
+
+    public function scroll(
+        mixed $data,
+        string $pageName = 'page',
+        ?int $previousPage = null,
+        ?int $nextPage = null,
+        int $currentPage = 1,
+        bool $reset = false,
+    ): Props\Scroll {
+        return new Props\Scroll($data, $pageName, $previousPage, $nextPage, $currentPage, $reset);
+    }
+
+    /**
+     * @param array<string, mixed>|list<array{channel: array{name: string, type?: string}|string, events: list<string>|string}>|string $listeners
+     * @param list<string>|string|null                                                                                                 $events
+     */
+    public function live(mixed $value, array|string $listeners = [], array|string|null $events = null, ?int $throttle = null): Props\Live
+    {
+        if (is_string($listeners)) {
+            $live = new Props\Live($value, [], $throttle);
+            if ($events !== null) {
+                $live->listen($listeners, $events);
+            }
+
+            return $live;
+        }
+
+        if (isset($listeners['channel'])) {
+            $listeners = [$listeners];
+        }
+
+        return new Props\Live($value, $listeners, $throttle);
+    }
+
+    /**
+     * Generate an external location visit response decision (409 Conflict).
+     */
+    public function redirectWithFragment(string $url): ResponseInterface
+    {
+        return \response()->setStatusCode(409)->setHeader('X-Inertia-Redirect', $url);
+    }
+
+    /**
+     * Generate a Precognition validation success response decision (204 No Content).
+     */
+    public function precognitionSuccess(): ResponseInterface
+    {
+        return \response()->setStatusCode(204)
+            ->setHeader('Precognition', 'true')
+            ->setHeader('Precognition-Success', 'true')
+            ->setHeader('Vary', 'Precognition');
     }
 
     /**
@@ -288,7 +372,7 @@ class ResponseFactory
             $url = (string) $url->getUri();
         }
 
-        if (Http::isInertiaRequest()) {
+        if (request()->hasHeader(InertiaHeaders::HEADER_INERTIA)) {
             session()->set('_ci_previous_url', $url);
 
             $response = \response()->setStatusCode(\response()::HTTP_CONFLICT);
@@ -305,13 +389,14 @@ class ResponseFactory
 
     /**
      * Set flashData
-     * @param mixed[]|string $data
-     * @param mixed $value
-     * @return ResponseFactory
+     *
+     * @param list<mixed>|string $data
+     * @param mixed              $value
      */
     public function flash(array|string $data, $value = null): self
     {
         session()->setFlashdata($data, $value);
+
         return $this;
     }
 
@@ -332,13 +417,41 @@ class ResponseFactory
      *
      * @psalm-api
      */
-    public static function init(array $page, bool $isHead = false): string
+    public static function init(array $page, bool $isHead = false, ?string $protocolVersion = null): string
     {
-        if ($isHead) {
-            return Directive::compileHead($page);
+        $version = $protocolVersion ?? config('Inertia')->protocolVersion ?? '3.0';
+        $protoVer = ProtocolVersion::fromMixed($version);
+
+        $pageObject = PageObject::fromArray($page, $protoVer);
+
+        // SSR handling
+        $config = config('Inertia');
+        if (!empty($config?->isSsrEnabled)) {
+            $gateway = Services::httpGateway();
+            if ($gateway instanceof SsrGatewayInterface) {
+                $ssr = $gateway->render($pageObject);
+                if ($ssr) {
+                    return $isHead ? implode("\n", $ssr->head) : $ssr->body;
+                }
+            } elseif ($gateway !== null && method_exists($gateway, 'dispatch')) {
+                $ssr = $gateway->dispatch($page);
+                if ($ssr) {
+                    $head = is_array($ssr->head) ? implode("\n", $ssr->head) : (string) $ssr->head;
+
+                    return $isHead ? $head : (string) $ssr->body;
+                }
+            }
         }
 
-        return Directive::compile($page);
+        if ($isHead) {
+            return '';
+        }
+
+        if ($protoVer->isV2()) {
+            return $pageObject->toHtmlDiv();
+        }
+
+        return '<script type="application/json" data-page="app">' . $pageObject->toHtmlJson() . '</script>' . $pageObject->toHtmlTag();
     }
 
     /**
@@ -347,49 +460,47 @@ class ResponseFactory
      */
     private function withValidationErrors(): self
     {
-        $validation = service("validation");
+        $validation = service('validation');
 
         $validatorErrors = $validation->getErrors();
-        $flashDataErrors = session()->getFlashdata("errors") ?? [];
+        $flashDataErrors = session()->getFlashdata('errors') ?? [];
 
         $errors = array_merge($flashDataErrors, $validatorErrors);
 
-        if (request()->hasHeader("x-inertia-error-bag")) {
-            $errors = ([
-                Http::getHeaderValue("x-inertia-error-bag") => $errors,
-            ]);
+        if (request()->hasHeader(InertiaHeaders::HEADER_ERROR_BAG)) {
+            $errors = [
+                request()->getHeaderLine(InertiaHeaders::HEADER_ERROR_BAG) => $errors,
+            ];
         }
 
-        $this->sharedProps = array_merge($this->sharedProps, ["errors" => $errors]);
-        $this->sharedKeys = array_unique(array_merge($this->sharedKeys, ["errors"]));
+        $this->sharedProps = array_merge($this->sharedProps, ['errors' => $errors]);
+        $this->sharedKeys = array_unique(array_merge($this->sharedKeys, ['errors']));
 
         return $this;
     }
 
     /**
      * Returns the list of flashdata
-     * @return ResponseFactory
      */
     private function withFlashData(): self
     {
         $allFlashData = session()->getFlashdata();
 
         // filter out errors flashdata, data that starts with _ci_
-        $flashData = array_filter($allFlashData, function ($key) {
-            return strpos($key, '_ci_') !== 0 && $key !== 'errors';
-        }, ARRAY_FILTER_USE_KEY);
+        $flashData = array_filter($allFlashData, static fn ($key) => !str_starts_with($key, '_ci_')   && $key !== 'errors', ARRAY_FILTER_USE_KEY);
 
-        $this->sharedProps = array_merge($this->sharedProps, ["flash" => $flashData]);
-        $this->sharedKeys = array_unique(array_merge($this->sharedKeys, ["flash"]));
+        $this->sharedProps = array_merge($this->sharedProps, ['flash' => $flashData]);
+        $this->sharedKeys = array_unique(array_merge($this->sharedKeys, ['flash']));
 
         return $this;
     }
 
-    protected function validateUserProps(array $props): void {
+    protected function validateUserProps(array $props): void
+    {
         $intersection = array_intersect(self::SYSTEM_PROP_KEYS, array_keys($props));
 
         if (!empty($intersection)) {
-            throw new \InvalidArgumentException('The following props are overwriting system props: `[' . implode(',', $intersection) . ']`. Choose different keys for these props to avoid this error.');
+            throw new InvalidArgumentException('The following props are overwriting system props: `[' . implode(',', $intersection) . ']`. Choose different keys for these props to avoid this error.');
         }
     }
 }

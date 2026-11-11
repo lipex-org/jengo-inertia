@@ -4,7 +4,6 @@
  * This file is part of Inertia.js Codeigniter 4.
  *
  * (c) 2023 Fab IT Hub <hello@fabithub.com>
- * (c) 2026 JengoPHP <hello@jengophp.com>
  *
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
@@ -17,15 +16,16 @@ use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
-use Jengo\Inertia\Extras\Http;
+use Inertia\Protocol\Support\InertiaHeaders;
+
 /**
  * @psalm-api
  */
 class Middleware implements FilterInterface
 {
     /**
-     * @psalm-return array{alert: Closure():?string, errors: Closure():object, flash: Closure():array{success: ?string, error: ?string}}
      * @return array{alert: Closure():?string, errors: Closure():object, flash: Closure():array{success: ?string, error: ?string}}
+     * @psalm-return array{alert: Closure():?string, errors: Closure():object, flash: Closure():array{success: ?string, error: ?string}}
      */
     public function withShare(RequestInterface $request): array
     {
@@ -40,8 +40,8 @@ class Middleware implements FilterInterface
         // For Inertia SPA GET requests, update CI4's previous URL session tracker so that
         // subsequent form failures calling redirect()->back() return to this SPA page.
         if (
-            $request->hasHeader('X-Inertia') &&
-            strtolower(request()->getMethod()) === 'get'
+            $request->hasHeader('X-Inertia')
+            && strtolower(request()->getMethod()) === 'get'
         ) {
             session()->set('_ci_previous_url', (string) $request->getUri());
         }
@@ -63,20 +63,20 @@ class Middleware implements FilterInterface
     ) {
         // clear all flashData, ignoring redirects
         if (
-            $response->getStatusCode() < 300 ||
-            $response->getStatusCode() >= 400
+            $response->getStatusCode() < 300
+            || $response->getStatusCode() >= 400
         ) {
             session()->unmarkFlashdata(session()->getFlashKeys());
         }
 
-        $response->setHeader("Vary", "X-Inertia");
+        $response->setHeader('Vary', 'X-Inertia');
 
-        if ($request->hasHeader("Precognition")) {
-            $response->setHeader("Vary", "Precognition");
-            $response->setHeader("Precognition", "true");
+        if ($request->hasHeader('Precognition')) {
+            $response->setHeader('Vary', 'Precognition');
+            $response->setHeader('Precognition', 'true');
         }
 
-        if (!$request->hasHeader("X-Inertia")) {
+        if (!$request->hasHeader('X-Inertia')) {
             return $response;
         }
 
@@ -85,9 +85,9 @@ class Middleware implements FilterInterface
         }
 
         // Only check version in production to avoid full page reloads during development
-        if (ENVIRONMENT !== "development" && request()->is("get")) {
+        if (ENVIRONMENT !== 'development' && request()->is('get')) {
             if (
-                Http::getHeaderValue("X-Inertia-Version") !==
+                $request->getHeaderLine(InertiaHeaders::HEADER_VERSION) !==
                 Inertia::getVersion()
             ) {
                 $response = $this->onVersionChange($request);
@@ -95,17 +95,17 @@ class Middleware implements FilterInterface
         }
 
         if (
-            $response->getStatusCode() === $response::HTTP_OK &&
-            (empty($response->getBody()) || empty($response->getJSON()))
+            $response->getStatusCode() === $response::HTTP_OK
+            && (empty($response->getBody()) || empty($response->getJSON()))
         ) {
             $response = $this->onEmptyResponse();
         }
 
         if (
-            $response->getStatusCode() === $response::HTTP_FOUND &&
-            (request()->is("put") ||
-                request()->is("patch") ||
-                request()->is("delete"))
+            $response->getStatusCode() === $response::HTTP_FOUND
+            && (request()->is('put')
+                || request()->is('patch')
+                || request()->is('delete'))
         ) {
             $response->setStatusCode($response::HTTP_SEE_OTHER);
         }

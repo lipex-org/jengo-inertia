@@ -272,4 +272,114 @@ describe('Response Extended Tests', function () {
 
         expect(true)->toBeTrue();
     });
+
+    it('supports preserveBigIntegers option wrapping large integers outside safe JS range', function () {
+        $routes = [['get', 'bigint-test', static function () {
+            $res = new Response('BigIntPage', [
+                'safe_id' => 12345,
+                'big_id'  => 9007199254740993, // > 2^53 - 1
+            ], 'v1');
+            $res->preserveBigIntegers(true);
+
+            return $res->toResponse();
+        }]];
+
+        /** @var FeatureRequestTestCase $this */
+        $result = $this->withRoutes($routes)->withHeaders(['X-Inertia' => 'true'])->get('/bigint-test');
+
+        expect($result->response())->toBeInstanceOf(HTTPResponse::class);
+        $page = json_decode($result->response()->getJSON(), true);
+
+        expect($page['preserveBigIntegers'])->toBeTrue();
+        expect($page['props']['safe_id'])->toEqual(12345);
+        expect($page['props']['big_id'])->toEqual(['$bigint' => '9007199254740993']);
+    });
+
+    it('supports rescued deferred props when exception is thrown', function () {
+        $routes = [['get', 'rescued-test', static function () {
+            $res = new Response('RescuedPage', [
+                'failing_prop' => Inertia::defer(function () {
+                    throw new \RuntimeException('Database timeout');
+                }, 'default', true), // rescue = true
+                'safe_prop' => 'ok',
+            ], 'v1');
+
+            return $res->toResponse();
+        }]];
+
+        /** @var FeatureRequestTestCase $this */
+        $result = $this->withRoutes($routes)->withHeaders([
+            'X-Inertia' => 'true',
+            'X-Inertia-Partial-Component' => 'RescuedPage',
+            'X-Inertia-Partial-Data' => 'failing_prop,safe_prop',
+        ])->get('/rescued-test');
+
+        expect($result->response())->toBeInstanceOf(HTTPResponse::class);
+        $page = json_decode($result->response()->getJSON(), true);
+
+        expect($page['rescuedProps'])->toContain('failing_prop');
+        expect($page['props'])->toHaveKey('safe_prop');
+        expect($page['props'])->not()->toHaveKey('failing_prop');
+    });
+
+    it('supports live and scroll props in Inertia v3 response', function () {
+        $routes = [['get', 'live-scroll-test', static function () {
+            $res = new Response('LiveScrollPage', [
+                'messages' => Inertia::live(['hello'], 'chat-room', 'MessageCreated', 250),
+                'feed' => Inertia::scroll(['post1', 'post2'], 'page', null, 2, 1),
+            ], 'v1');
+
+            return $res->toResponse();
+        }]];
+
+        /** @var FeatureRequestTestCase $this */
+        $result = $this->withRoutes($routes)->withHeaders(['X-Inertia' => 'true'])->get('/live-scroll-test');
+
+        expect($result->response())->toBeInstanceOf(HTTPResponse::class);
+        $page = json_decode($result->response()->getJSON(), true);
+
+        expect($page['liveProps'])->toHaveKey('messages');
+        expect($page['liveProps']['messages']['throttle'])->toEqual(250);
+        expect($page['scrollProps'])->toHaveKey('feed');
+        expect($page['scrollProps']['feed']['currentPage'])->toEqual(1);
+        expect($page['scrollProps']['feed']['nextPage'])->toEqual(2);
+    });
+
+    it('supports protocol version switching between v2 and v3', function () {
+        // Test v3: contains v3 metadata
+        $resV3 = new Response('V3Page', [
+            'messages' => Inertia::live(['hello'], 'chat-room', 'MessageCreated'),
+        ], 'v1');
+        $resV3->withProtocolVersion('3.0')->preserveBigIntegers(true);
+
+        $request = service('request');
+        $request->setHeader('X-Inertia', 'true');
+
+        $jsonV3 = json_decode((string) $resV3, true);
+        expect($jsonV3)->toHaveKey('liveProps');
+        expect($jsonV3)->toHaveKey('preserveBigIntegers');
+
+        // Test v2: strips v3-only metadata
+        $resV2 = new Response('V2Page', [
+            'messages' => Inertia::live(['hello'], 'chat-room', 'MessageCreated'),
+        ], 'v1');
+        $resV2->withProtocolVersion('2.0')->preserveBigIntegers(true);
+
+        $jsonV2 = json_decode((string) $resV2, true);
+        expect($jsonV2)->not()->toHaveKey('liveProps');
+        expect($jsonV2)->not()->toHaveKey('preserveBigIntegers');
+    });
+
+    it('supports withErrors and withFlash methods on Response', function () {
+        $res = new Response('FlashPage', ['user' => 'Alice'], 'v1');
+        $res->withErrors(['email' => 'Invalid email'])
+            ->withFlash(['success' => 'Profile updated']);
+
+        $request = service('request');
+        $request->setHeader('X-Inertia', 'true');
+
+        $json = json_decode((string) $res, true);
+        expect($json['props']['errors'])->toEqual(['email' => 'Invalid email']);
+        expect($json['flash'])->toEqual(['success' => 'Profile updated']);
+    });
 });

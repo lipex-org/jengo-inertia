@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/**
+ * This file is part of Inertia.js Codeigniter 4.
+ *
+ * (c) 2023 Fab IT Hub <hello@fabithub.com>
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
+ */
+
 namespace Jengo\Inertia\Testing;
 
 use CodeIgniter\Test\TestResponse as CITestResponse;
@@ -11,7 +20,7 @@ class TestResponse
 {
     public function __construct(
         public readonly CITestResponse $response,
-        protected readonly object $testCase
+        protected readonly object $testCase,
     ) {
     }
 
@@ -78,7 +87,7 @@ class TestResponse
         PHPUnit::assertArrayHasKey('version', $page, 'The Inertia response is missing the "version" key.');
 
         // Build request runner for reload and deferred props follow-up requests
-        $requestRunner = function (array $headers) use ($page) {
+        $requestRunner = function (array $headers) {
             $request = service('request');
             $method = strtolower($request->getMethod());
             $uri = (string) $request->getUri();
@@ -106,6 +115,7 @@ class TestResponse
             }
 
             PHPUnit::assertNotNull($pageData, 'The follow-up response is not a valid Inertia response.');
+
             return $pageData;
         };
 
@@ -116,7 +126,7 @@ class TestResponse
             $page['version'] !== null ? (string) $page['version'] : null,
             (array) ($page['deferredProps'] ?? []),
             null,
-            $requestRunner
+            $requestRunner,
         );
 
         $callback($assertable);

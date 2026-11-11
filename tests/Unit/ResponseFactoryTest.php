@@ -16,8 +16,11 @@ use Jengo\Inertia\Inertia;
 use Jengo\Inertia\Props\Always;
 use Jengo\Inertia\Props\Defer;
 use Jengo\Inertia\Props\Lazy;
+use Jengo\Inertia\Props\Live;
 use Jengo\Inertia\Props\Mergeable;
 use Jengo\Inertia\Props\Once;
+use Jengo\Inertia\Props\Optional;
+use Jengo\Inertia\Props\Scroll;
 use Jengo\Inertia\ResponseFactory;
 use Tests\TestCase;
 
@@ -106,6 +109,15 @@ class ResponseFactoryTest extends TestCase
         $deepMerge = $this->factory->deepMerge(['c']);
         $this->assertInstanceOf(Mergeable::class, $deepMerge);
         $this->assertTrue($deepMerge->deep);
+
+        $optional = $this->factory->optional('opt');
+        $this->assertInstanceOf(Optional::class, $optional);
+
+        $scroll = $this->factory->scroll(['item1']);
+        $this->assertInstanceOf(Scroll::class, $scroll);
+
+        $live = $this->factory->live('live_val', 'channel_1');
+        $this->assertInstanceOf(Live::class, $live);
     }
 
     public function testLocationOnInertiaRequest(): void
@@ -200,6 +212,46 @@ class ResponseFactoryTest extends TestCase
         $this->assertInstanceOf(Mergeable::class, Inertia::merge(['a']));
         $this->assertInstanceOf(Mergeable::class, Inertia::prepend(['b']));
         $this->assertInstanceOf(Mergeable::class, Inertia::deepMerge(['c']));
+        $this->assertInstanceOf(Optional::class, Inertia::optional('opt'));
+        $this->assertInstanceOf(Scroll::class, Inertia::scroll(['item1']));
+        $this->assertInstanceOf(Live::class, Inertia::live('live_val', 'channel_1'));
+    }
+
+    public function testRedirectWithFragment(): void
+    {
+        $response = $this->factory->redirectWithFragment('http://example.com/items#section-2');
+
+        $this->assertInstanceOf(ResponseInterface::class, $response);
+        $this->assertSame(409, $response->getStatusCode());
+        $this->assertSame('http://example.com/items#section-2', $response->getHeaderLine('X-Inertia-Redirect'));
+    }
+
+    public function testPrecognitionSuccess(): void
+    {
+        $response = $this->factory->precognitionSuccess();
+
+        $this->assertSame(204, $response->getStatusCode());
+        $this->assertSame('true', $response->getHeaderLine('Precognition-Success'));
+    }
+
+    public function testDirectiveCompileProtocolVersions(): void
+    {
+        $page = [
+            'component' => 'Dashboard',
+            'props'     => ['user' => 'Bob'],
+            'url'       => '/dashboard',
+            'version'   => '1.0',
+        ];
+
+        // V3 (default)
+        $v3Html = ResponseFactory::init($page, false, '3.0');
+        $this->assertStringContainsString('<script type="application/json" data-page="app">', $v3Html);
+        $this->assertStringContainsString('<div id="app"></div>', $v3Html);
+
+        // V2
+        $v2Html = ResponseFactory::init($page, false, '2.0');
+        $this->assertStringContainsString('<div id="app" data-page=', $v2Html);
+        $this->assertStringNotContainsString('<script', $v2Html);
     }
 
     public function testRenderResolvesValidationErrorsAndFlashData(): void

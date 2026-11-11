@@ -4,7 +4,6 @@
  * This file is part of Inertia.js Codeigniter 4.
  *
  * (c) 2023 Fab IT Hub <hello@fabithub.com>
- * (c) 2026 JengoPHP <hello@jengophp.com>
  *
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
@@ -16,23 +15,33 @@ use CodeIgniter\Config\BaseConfig;
 
 class Inertia extends BaseConfig
 {
+    /**
+     * Wire protocol version: '3.0' (default) or '2.0'.
+     */
+    public string $protocolVersion = '3.0';
+
     public string $rootView = 'app';
-    public string|null $version = null;
+    public ?string $version = null;
     public bool $isSsrEnabled = false;
     public string $ssrUrl = 'http://127.0.0.1:13714';
     public string $filterAlias = 'inertia';
+
+    /**
+     * Wrap 64-bit integers outside JS safe range (-2^53+1 to 2^53-1) as {"$bigint": "<digits>"}.
+     */
+    public bool $preserveBigIntegers = false;
 
     /**
      * Map of HTTP status codes or error keys to Inertia page components.
      *
      * Example:
      * [
-     *     401 => 'errors/401',
-     *     403 => 'errors/403',
-     *     404 => 'errors/404',
-     *     419 => 'errors/419',
-     *     500 => 'errors/500',
-     *     503 => 'errors/503',
+     *     401 => 'error',
+     *     403 => 'error',
+     *     404 => 'error',
+     *     419 => 'error',
+     *     500 => 'error',
+     *     503 => 'error',
      *     'error' => 'error',
      * ]
      *
@@ -54,7 +63,7 @@ class Inertia extends BaseConfig
      * @var array<string, mixed>
      */
     public array $pages = [
-        'ensure_page_exists' => true,
+        'ensure_page_exists' => false,
         'pages' => [],
         'extensions' => ['vue', 'jsx', 'tsx', 'svelte', 'js', 'ts'],
         'error' => 'error',

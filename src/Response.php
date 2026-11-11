@@ -4,7 +4,6 @@
  * This file is part of Inertia.js Codeigniter 4.
  *
  * (c) 2023 Fab IT Hub <hello@fabithub.com>
- * (c) 2026 JengoPHP <hello@jengophp.com>
  *
  * For the full copyright and license information, please view
  * the LICENSE file that was distributed with this source code.
@@ -13,56 +12,29 @@
 namespace Jengo\Inertia;
 
 use CodeIgniter\HTTP\RequestInterface;
-use CodeIgniter\HTTP\ResponsableInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\View\View;
 use Config\View as ConfigView;
-use Inertia\Protocol\ProtocolEngine;
-use Jengo\Inertia\CI4RequestAdapter;
+use Inertia\Protocol\InertiaResponse;
+use Inertia\Protocol\ProtocolVersion;
+use Stringable;
 
-class Response implements ResponsableInterface
+class Response extends InertiaResponse implements Stringable
 {
-    /**
-     * @var array<string, mixed>
-     */
-    protected array $props = [];
-
     /**
      * @var array<string, mixed>
      */
     protected array $viewData = [];
 
-    protected string $version = '';
-    protected string $component = '';
-    protected bool $encryptHistory = false;
-    protected bool $clearHistory = false;
-    protected bool $preserveFragment = false;
-    protected array $sharedKeys = [];
-    protected array $scrollProps = [];
-
     /**
      * @param array<string, mixed> $props
      */
-    public function __construct(string $component, array $props, string $version = '')
-    {
-        $this->withComponent($component)->with($props)->withVersion($version);
-    }
-
-    /**
-     * @param array<string, mixed>|string $key
-     * @param mixed                       $value
-     *
-     * @return $this
-     */
-    public function with($key, $value = null): self
-    {
-        if (is_array($key)) {
-            $this->props = array_merge($this->props, $key);
-        } else {
-            $this->props[$key] = $value;
-        }
-
-        return $this;
+    public function __construct(
+        string $component,
+        array $props = [],
+        mixed $version = '',
+    ) {
+        parent::__construct($component, $props, $version);
     }
 
     public function withComponent(string $component): static
@@ -72,44 +44,22 @@ class Response implements ResponsableInterface
         return $this;
     }
 
-    public function withVersion(string $version): static
-    {
-        $this->version = $version;
-
-        return $this;
-    }
-
-    public function withSharedKeys(array $keys): static
-    {
-        $this->sharedKeys = $keys;
-
-        return $this;
-    }
-
+    /**
+     * @param array<string, mixed> $props
+     */
     public function scrollProps(array $props): static
     {
-        $this->scrollProps = $props;
+        $this->options['scrollProps'] = $props;
 
         return $this;
     }
 
-    public function encryptHistory(bool $encrypt = true): static
+    /**
+     * @param array<string, mixed> $data
+     */
+    public function viewData(array $data): static
     {
-        $this->encryptHistory = $encrypt;
-
-        return $this;
-    }
-
-    public function clearHistory(bool $clear = true): static
-    {
-        $this->clearHistory = $clear;
-
-        return $this;
-    }
-
-    public function preserveFragment(bool $preserve = true): static
-    {
-        $this->preserveFragment = $preserve;
+        $this->viewData = array_merge($this->viewData, $data);
 
         return $this;
     }
@@ -120,7 +70,7 @@ class Response implements ResponsableInterface
 
         if ($response instanceof View) {
             /** @var Config\Inertia $config */
-            $config = \config('Inertia');
+            $config = config('Inertia');
 
             return $response->render($config->rootView);
         }
@@ -128,30 +78,38 @@ class Response implements ResponsableInterface
         return (string) $response->getJSON();
     }
 
-    public function toResponse(?RequestInterface $request = null): View|ResponseInterface
+    public function toResponse(?RequestInterface $request = null): ResponseInterface|View
     {
         $request ??= request();
         $adapter = new CI4RequestAdapter($request);
 
-        $engine = new ProtocolEngine();
-        $decision = $engine->evaluate(
-            request: $adapter,
-            component: $this->component,
-            props: $this->props,
-            version: $this->version,
-            options: [
-                'sharedKeys'       => $this->sharedKeys,
-                'scrollProps'      => $this->scrollProps,
-                'encryptHistory'   => $this->encryptHistory,
-                'clearHistory'     => $this->clearHistory,
-                'preserveFragment' => $this->preserveFragment,
-            ]
-        );
+        /** @var Config\Inertia $config */
+        $config = config('Inertia') ?? new Config\Inertia();
 
+        // Extract reserved 'errors' and 'flash' from user props if present
+        if (isset($this->props['errors'])) {
+            $this->options['errors'] = $this->props['errors'];
+            unset($this->props['errors']);
+        }
+        if (isset($this->props['flash'])) {
+            $this->options['flash'] = $this->props['flash'];
+            unset($this->props['flash']);
+        }
+
+        if (!isset($this->options['protocolVersion'])) {
+            $this->options['protocolVersion'] = ProtocolVersion::fromMixed($config->protocolVersion ?? '3.0');
+        }
+
+        if (!isset($this->options['preserveBigIntegers']) && !empty($config->preserveBigIntegers)) {
+            $this->options['preserveBigIntegers'] = true;
+        }
+
+        $decision = $this->toDecision($adapter);
         $page = $decision->pageObject->toArray();
 
         if ($decision->isJson()) {
             $res = \response()->setJSON($page, true);
+
             foreach ($decision->headers as $name => $value) {
                 $res->setHeader($name, $value);
             }
@@ -171,7 +129,7 @@ class Response implements ResponsableInterface
 
         if ($response instanceof View) {
             /** @var Config\Inertia $config */
-            $config = \config('Inertia');
+            $config = config('Inertia');
 
             return \response()->setBody(view($config->rootView, $response->getData()))->setHeader('Content-Type', 'text/html');
         }
